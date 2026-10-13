@@ -3,129 +3,260 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CCU Events Calendar - Auto Updating</title>
+  <title>Interactive CCU Events Calendar</title>
   <style>
     :root {
       --primary: #002b49;
       --accent: #0072ce;
+      --accent-hover: #005bb5;
       --bg: #f4f6f9;
       --card-bg: #ffffff;
-      --text: #333333;
+      --text: #222222;
       --text-muted: #666666;
-      --border: #e0e0e0;
-      --day-bg: #fafafa;
+      --border: #dcdcdc;
+      --day-bg: #ffffff;
+      --day-hover: #f0f7ff;
+      --today-bg: #e3f2fd;
+      --today-border: #0072ce;
       --input-bg: #ffffff;
+      --pill-bg: #0072ce;
       --pill-text: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.08);
+      --cell-min-height: 110px;
     }
 
     [data-theme="dark"] {
       --primary: #64b5f6;
       --accent: #0288d1;
+      --accent-hover: #0277bd;
       --bg: #121212;
       --card-bg: #1e1e1e;
       --text: #e0e0e0;
       --text-muted: #aaaaaa;
       --border: #333333;
       --day-bg: #252525;
+      --day-hover: #2c3846;
+      --today-bg: #102a43;
+      --today-border: #64b5f6;
       --input-bg: #2a2a2a;
+      --pill-bg: #0288d1;
       --pill-text: #ffffff;
+      --shadow: rgba(0, 0, 0, 0.4);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--text); padding: 20px; transition: background-color 0.3s ease, color 0.3s ease; }
 
     .header { text-align: center; margin-bottom: 20px; }
-    .header h1 { color: var(--primary); font-size: 2rem; }
+    .header h1 { color: var(--primary); font-size: 2.2rem; font-weight: 700; letter-spacing: -0.5px; }
     
     .status-bar {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
       background: var(--card-bg);
-      border-radius: 8px;
-      padding: 10px 20px;
-      max-width: 1200px;
+      border-radius: 10px;
+      padding: 12px 20px;
+      max-width: 1300px;
       margin: 0 auto 20px auto;
-      font-size: 0.85rem;
-      border-left: 4px solid var(--accent);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      font-size: 0.9rem;
+      border-left: 5px solid var(--accent);
+      box-shadow: 0 4px 12px var(--shadow);
       transition: background 0.3s ease;
     }
 
     .controls-group {
       display: flex;
-      gap: 10px;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
     }
 
     .btn {
       background: var(--accent);
       color: var(--pill-text);
       border: none;
-      padding: 6px 14px;
-      border-radius: 4px;
+      padding: 8px 14px;
+      border-radius: 6px;
       cursor: pointer;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       font-weight: 600;
-      transition: opacity 0.2s;
+      transition: background 0.2s, opacity 0.2s;
     }
 
-    .btn:hover {
-      opacity: 0.85;
+    .btn:hover { background: var(--accent-hover); }
+    .btn-secondary { background: var(--border); color: var(--text); }
+    .btn-secondary:hover { opacity: 0.8; }
+    .theme-toggle-btn { background: var(--primary); color: #fff; }
+
+    .zoom-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--day-bg);
+      padding: 4px 8px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
     }
 
-    .theme-toggle-btn {
-      background: var(--primary);
-    }
+    .zoom-label { font-size: 0.8rem; font-weight: bold; color: var(--text-muted); min-width: 45px; text-align: center; }
 
     .container {
       display: grid;
-      grid-template-columns: 1fr 350px;
+      grid-template-columns: 1fr 360px;
       gap: 20px;
-      max-width: 1200px;
+      max-width: 1300px;
       margin: 0 auto;
     }
 
-    @media (max-width: 900px) { .container { grid-template-columns: 1fr; } }
+    @media (max-width: 980px) { .container { grid-template-columns: 1fr; } }
 
     .card {
       background: var(--card-bg);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px var(--shadow);
       transition: background 0.3s ease;
     }
 
-    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: bold; color: var(--primary); padding-bottom: 10px; border-bottom: 2px solid var(--border); }
-    .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; }
-    
-    .day { min-height: 95px; background: var(--day-bg); border: 1px solid var(--border); border-radius: 4px; padding: 6px; font-size: 0.85rem; display: flex; flex-direction: column; transition: background 0.3s ease; }
+    /* Month Navigation Controls */
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .month-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .month-nav {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    /* Scrollable and Zoomable Viewport */
+    .calendar-viewport {
+      overflow: auto;
+      max-width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--card-bg);
+      padding: 10px;
+      max-height: 75vh;
+    }
+
+    .calendar-content-zoom {
+      transform-origin: top left;
+      transition: transform 0.15s ease-out;
+      min-width: 650px;
+    }
+
+    .weekdays {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-weight: 700;
+      color: var(--primary);
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    .days-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .day {
+      min-height: var(--cell-min-height);
+      background: var(--day-bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px;
+      font-size: 0.85rem;
+      display: flex;
+      flex-direction: column;
+      transition: background 0.2s ease, border-color 0.2s ease;
+    }
+
+    .day:hover { background: var(--day-hover); }
     .day.empty { background: transparent; border: none; }
-    .day-number { font-weight: bold; margin-bottom: 4px; }
-    
-    .event-pill {
+    .day.today {
+      background: var(--today-bg);
+      border: 2px solid var(--today-border);
+    }
+
+    .day-number {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .today-badge {
+      font-size: 0.65rem;
       background: var(--accent);
+      color: #fff;
+      padding: 1px 5px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    /* Event Badges */
+    .events-container {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      overflow-y: auto;
+      max-height: 120px;
+    }
+
+    .event-pill {
+      background: var(--pill-bg);
       color: var(--pill-text);
-      padding: 3px 6px;
-      border-radius: 3px;
-      font-size: 0.72rem;
-      margin-bottom: 3px;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
       text-decoration: none;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       display: block;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
 
-    .event-list { max-height: 400px; overflow-y: auto; }
-    .event-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
-    .event-item:last-child { border-bottom: none; }
-    .event-title { font-weight: bold; color: var(--primary); text-decoration: none; display: block; }
-    .event-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+    .event-pill:hover { opacity: 0.9; text-decoration: underline; }
+
+    /* Sidebar and Form Styles */
+    .sidebar h2 { font-size: 1.2rem; color: var(--primary); margin-bottom: 12px; }
+    .event-list { max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .event-item { padding: 12px; background: var(--day-bg); border-left: 4px solid var(--accent); border-radius: 6px; border: 1px solid var(--border); border-left-width: 4px; }
+    .event-title { font-weight: 700; color: var(--primary); text-decoration: none; font-size: 0.95rem; display: block; margin-bottom: 4px; }
+    .event-title:hover { text-decoration: underline; }
+    .event-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 4px; }
 
     form { display: flex; flex-direction: column; gap: 10px; }
-    input, button { padding: 10px; border: 1px solid var(--border); border-radius: 4px; background: var(--input-bg); color: var(--text); }
-    button.submit-btn { background: var(--primary); color: #ffffff; border: none; font-weight: bold; cursor: pointer; }
+    .form-group { display: flex; flex-direction: column; gap: 4px; }
+    .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+    input, select, button { padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.88rem; }
+    input:focus, select:focus { outline: 2px solid var(--accent); }
+    button.submit-btn { background: var(--primary); color: #ffffff; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; transition: opacity 0.2s; }
+    button.submit-btn:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
@@ -135,45 +266,94 @@
   </div>
 
   <div class="status-bar">
-    <span id="lastUpdated">Syncing with live feed...</span>
+    <span id="lastUpdated">Syncing live feed...</span>
     <div class="controls-group">
-      <button class="btn theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+      <div class="zoom-controls">
+        <button class="btn btn-secondary" onclick="changeZoom(-10)">-</button>
+        <span class="zoom-label" id="zoomLevelText">100%</span>
+        <button class="btn btn-secondary" onclick="changeZoom(10)">+</button>
+        <button class="btn btn-secondary" onclick="resetZoom()">Reset</button>
+      </div>
+      <button class="btn theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Dark</button>
       <button class="btn" onclick="fetchLiveEvents()">Sync Now</button>
     </div>
   </div>
 
   <div class="container">
+    <!-- Main Calendar Area -->
     <div class="card">
       <div class="calendar-header">
-        <h2 id="monthYearTitle">October 2026</h2>
+        <div class="month-title" id="monthYearTitle">Month Year</div>
+        <div class="month-nav">
+          <button class="btn btn-secondary" onclick="navigateMonth(-1)">&#10094; Prev</button>
+          <button class="btn btn-secondary" onclick="goToCurrentMonth()">Today</button>
+          <button class="btn btn-secondary" onclick="navigateMonth(1)">Next &#10095;</button>
+        </div>
       </div>
-      <div class="weekdays">
-        <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+
+      <!-- Zoomable and Scrollable Viewport -->
+      <div class="calendar-viewport" id="calendarViewport">
+        <div class="calendar-content-zoom" id="calendarZoomContainer">
+          <div class="weekdays">
+            <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+          </div>
+          <div class="days-grid" id="calendarDays"></div>
+        </div>
       </div>
-      <div class="days-grid" id="calendarDays"></div>
     </div>
 
+    <!-- Sidebar for Auto Inputs and Events List -->
     <div class="sidebar">
       <div class="card" style="margin-bottom: 20px;">
-        <h2>Add Custom Event</h2>
+        <h2>Auto Add Event</h2>
         <form id="eventForm">
-          <input type="text" id="title" placeholder="Event Title" required>
-          <input type="number" id="day" placeholder="Day of Month (1-31)" min="1" max="31" required>
-          <input type="text" id="time" placeholder="Time (e.g. 7:00 pm)" required>
-          <input type="text" id="location" placeholder="Location">
-          <input type="url" id="link" placeholder="URL (optional)">
-          <button type="submit" class="submit-btn">Add Event</button>
+          <div class="form-group">
+            <label for="title">Event Title</label>
+            <input type="text" id="title" placeholder="e.g. Campus Concert" required>
+          </div>
+          <div class="form-group">
+            <label for="date">Date</label>
+            <input type="date" id="date" required>
+          </div>
+          <div class="form-group">
+            <label for="time">Time</label>
+            <input type="text" id="time" placeholder="e.g. 7:00 pm - 8:30 pm" required>
+          </div>
+          <div class="form-group">
+            <label for="location">Location</label>
+            <input type="text" id="location" placeholder="e.g. Armstrong Center">
+          </div>
+          <div class="form-group">
+            <label for="link">Event URL</label>
+            <input type="url" id="link" placeholder="https://...">
+          </div>
+          <button type="submit" class="submit-btn">Add to Calendar</button>
         </form>
       </div>
 
       <div class="card">
-        <h2>Upcoming Events</h2>
+        <h2 id="sidebarListTitle">Events for Month</h2>
         <div class="event-list" id="eventList"></div>
       </div>
     </div>
   </div>
 
   <script>
+    // State Management
+    let currentDate = new Date(2026, 9, 1); // October 2026 default
+    let currentZoom = 100;
+
+    // Events Dataset with standard ISO dates (YYYY-MM-DD)
+    let events = [
+      { date: "2026-10-01", title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html" },
+      { date: "2026-10-08", title: "Two-Day Preview", time: "8:30 am - 2:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html" },
+      { date: "2026-10-16", title: "Parent and Family Weekend", time: "11:00 am - 9:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/family-weekend/index.html" },
+      { date: "2026-10-16", title: "Fall Symphonic Band Concert", time: "7:00 pm - 8:30 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-symphonic-band-concert/" },
+      { date: "2026-10-19", title: "Faith and Freedom Series: Joseph Loconte", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faith-freedom-loconte/index.html" },
+      { date: "2026-10-21", title: "Fall Play: Antigone", time: "7:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/antigone/" },
+      { date: "2026-10-30", title: "Fall Choral Concert", time: "7:00 pm - 9:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-choral-concert/" }
+    ];
+
     // Theme Management
     function initTheme() {
       const savedTheme = localStorage.getItem('theme') || 
@@ -186,7 +366,7 @@
       localStorage.setItem('theme', theme);
       const themeBtn = document.getElementById('themeToggle');
       if (themeBtn) {
-        themeBtn.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+        themeBtn.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
       }
     }
 
@@ -195,22 +375,39 @@
       setTheme(currentTheme === 'dark' ? 'light' : 'dark');
     }
 
-    initTheme();
+    // Zoom Management
+    function changeZoom(delta) {
+      currentZoom = Math.min(Math.max(70, currentZoom + delta), 180);
+      applyZoom();
+    }
 
-    // Event Data Management
-    let events = [
-      { day: 1, title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html" },
-      { day: 8, title: "Two-Day Preview", time: "8:30 am - 2:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html" },
-      { day: 16, title: "Parent and Family Weekend", time: "11:00 am - 9:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/family-weekend/index.html" },
-      { day: 16, title: "Fall Symphonic Band Concert", time: "7:00 pm - 8:30 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-symphonic-band-concert/" },
-      { day: 19, title: "Faith and Freedom Series: Joseph Loconte", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faith-freedom-loconte/index.html" },
-      { day: 21, title: "Fall Play: Antigone", time: "7:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/antigone/" },
-      { day: 30, title: "Fall Choral Concert", time: "7:00 pm - 9:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-choral-concert/" }
-    ];
+    function resetZoom() {
+      currentZoom = 100;
+      applyZoom();
+    }
 
+    function applyZoom() {
+      const container = document.getElementById('calendarZoomContainer');
+      const label = document.getElementById('zoomLevelText');
+      container.style.transform = `scale(${currentZoom / 100})`;
+      label.textContent = `${currentZoom}%`;
+    }
+
+    // Month Navigation
+    function navigateMonth(direction) {
+      currentDate.setMonth(currentDate.getMonth() + direction);
+      renderCalendar();
+    }
+
+    function goToCurrentMonth() {
+      currentDate = new Date();
+      renderCalendar();
+    }
+
+    // Data Fetching & Syncing
     async function fetchLiveEvents() {
       const statusEl = document.getElementById('lastUpdated');
-      statusEl.textContent = 'Checking for daily updates...';
+      statusEl.textContent = 'Checking for live updates...';
 
       try {
         const response = await fetch('./events.json?cachebuster=' + new Date().getTime());
@@ -222,7 +419,6 @@
           }
         }
       } catch (err) {
-        console.log('Using cached or default event data.');
         const cached = localStorage.getItem('ccu_events');
         if (cached) events = JSON.parse(cached);
       }
@@ -232,31 +428,57 @@
       renderCalendar();
     }
 
+    // Dynamic Calendar Grid Render
     function renderCalendar() {
       const grid = document.getElementById('calendarDays');
       const list = document.getElementById('eventList');
+      const title = document.getElementById('monthYearTitle');
+      const sidebarTitle = document.getElementById('sidebarListTitle');
+
       grid.innerHTML = '';
       list.innerHTML = '';
 
-      const startOffset = 4; // Oct 2026 starts Thursday
-      const totalDays = 31;
+      const year = currentDate.getFullYear();
+      const month = currentDate.getMonth();
 
-      for (let i = 0; i < startOffset; i++) {
+      const monthNames = ["January", "February", "March", "April", "May", "June", 
+                          "July", "August", "September", "October", "November", "December"];
+      title.textContent = `${monthNames[month]} ${year}`;
+      sidebarTitle.textContent = `${monthNames[month]} Events`;
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+      const todayObj = new Date();
+      const isCurrentMonthReal = todayObj.getFullYear() === year && todayObj.getMonth() === month;
+
+      // Empty offset days
+      for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement('div');
         empty.className = 'day empty';
         grid.appendChild(empty);
       }
 
-      for (let day = 1; day <= totalDays; day++) {
+      // Month days
+      for (let day = 1; day <= daysInMonth; day++) {
         const dayDiv = document.createElement('div');
-        dayDiv.className = 'day';
-        
+        const formattedDay = day < 10 ? `0${day}` : day;
+        const formattedMonth = (month + 1) < 10 ? `0${month + 1}` : (month + 1);
+        const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
+
+        const isToday = isCurrentMonthReal && todayObj.getDate() === day;
+        dayDiv.className = `day ${isToday ? 'today' : ''}`;
+
         const dayNum = document.createElement('div');
         dayNum.className = 'day-number';
-        dayNum.textContent = day;
+        dayNum.innerHTML = `<span>${day}</span>${isToday ? '<span class="today-badge">Today</span>' : ''}`;
         dayDiv.appendChild(dayNum);
 
-        const dayEvents = events.filter(e => parseInt(e.day) === day);
+        const dayEvents = events.filter(e => e.date === dateStr);
+        
+        const eventsContainer = document.createElement('div');
+        eventsContainer.className = 'events-container';
+
         dayEvents.forEach(e => {
           const pill = document.createElement('a');
           pill.className = 'event-pill';
@@ -264,41 +486,66 @@
           pill.href = e.link || '#';
           pill.target = '_blank';
           pill.title = `${e.title} (${e.time})`;
-          dayDiv.appendChild(pill);
+          eventsContainer.appendChild(pill);
         });
 
+        dayDiv.appendChild(eventsContainer);
         grid.appendChild(dayDiv);
       }
 
-      events.sort((a, b) => a.day - b.day).forEach(e => {
-        const item = document.createElement('div');
-        item.className = 'event-item';
-        item.innerHTML = `
-          <a class="event-title" href="${e.link || '#'}" target="_blank">${e.title}</a>
-          <div class="event-meta">📅 Oct ${e.day}, 2026 | ⏰ ${e.time}</div>
-          <div class="event-meta">📍 ${e.location || 'CCU Campus'}</div>
-        `;
-        list.appendChild(item);
-      });
+      // Sidebar Event List for current month view
+      const currentMonthPrefix = `${year}-${(month + 1) < 10 ? '0' + (month + 1) : month + 1}`;
+      const monthEvents = events
+        .filter(e => e.date && e.date.startsWith(currentMonthPrefix))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      if (monthEvents.length === 0) {
+        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">No events scheduled for this month.</div>';
+      } else {
+        monthEvents.forEach(e => {
+          const item = document.createElement('div');
+          item.className = 'event-item';
+          const eventDateObj = new Date(e.date + 'T00:00:00');
+          const dateFormatted = eventDateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          
+          item.innerHTML = `
+            <a class="event-title" href="${e.link || '#'}" target="_blank">${e.title}</a>
+            <div class="event-meta">📅 ${dateFormatted}, ${year} &nbsp;|&nbsp; ⏰ ${e.time}</div>
+            <div class="event-meta">📍 ${e.location || 'CCU Campus'}</div>
+          `;
+          list.appendChild(item);
+        });
+      }
     }
 
+    // Auto Input Form Handling
     document.getElementById('eventForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const newEvent = {
+        date: document.getElementById('date').value,
         title: document.getElementById('title').value,
-        day: parseInt(document.getElementById('day').value),
         time: document.getElementById('time').value,
         location: document.getElementById('location').value || 'CCU Campus',
         link: document.getElementById('link').value || '#'
       };
+
       events.push(newEvent);
       localStorage.setItem('ccu_events', JSON.stringify(events));
+
+      // Auto-navigate calendar to the newly added event month
+      if (newEvent.date) {
+        const [y, m] = newEvent.date.split('-');
+        currentDate = new Date(parseInt(y), parseInt(m) - 1, 1);
+      }
+
       renderCalendar();
       this.reset();
     });
 
+    // Initialize Application
+    initTheme();
     fetchLiveEvents();
-    setInterval(fetchLiveEvents, 1000 * 60 * 60 * 12);
+    document.getElementById('date').valueAsDate = new Date();
   </script>
 </body>
 </html>
