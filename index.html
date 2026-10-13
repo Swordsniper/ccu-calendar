@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,14 +11,30 @@
       --bg: #f4f6f9;
       --card-bg: #ffffff;
       --text: #333333;
+      --text-muted: #666666;
       --border: #e0e0e0;
-      --success: #2e7d32;
+      --day-bg: #fafafa;
+      --input-bg: #ffffff;
+      --pill-text: #ffffff;
+    }
+
+    [data-theme="dark"] {
+      --primary: #64b5f6;
+      --accent: #0288d1;
+      --bg: #121212;
+      --card-bg: #1e1e1e;
+      --text: #e0e0e0;
+      --text-muted: #aaaaaa;
+      --border: #333333;
+      --day-bg: #252525;
+      --input-bg: #2a2a2a;
+      --pill-text: #ffffff;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 20px; }
+    body { background-color: var(--bg); color: var(--text); padding: 20px; transition: background-color 0.3s ease, color 0.3s ease; }
 
-    .header { text-align: center; margin-bottom: 25px; }
+    .header { text-align: center; margin-bottom: 20px; }
     .header h1 { color: var(--primary); font-size: 2rem; }
     
     .status-bar {
@@ -32,17 +48,33 @@
       margin: 0 auto 20px auto;
       font-size: 0.85rem;
       border-left: 4px solid var(--accent);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transition: background 0.3s ease;
     }
 
-    .sync-btn {
+    .controls-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
       background: var(--accent);
-      color: white;
+      color: var(--pill-text);
       border: none;
-      padding: 6px 12px;
+      padding: 6px 14px;
       border-radius: 4px;
       cursor: pointer;
       font-size: 0.8rem;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+
+    .btn:hover {
+      opacity: 0.85;
+    }
+
+    .theme-toggle-btn {
+      background: var(--primary);
     }
 
     .container {
@@ -59,20 +91,21 @@
       background: var(--card-bg);
       border-radius: 8px;
       padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      transition: background 0.3s ease;
     }
 
     .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
     .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: bold; color: var(--primary); padding-bottom: 10px; border-bottom: 2px solid var(--border); }
     .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin-top: 10px; }
     
-    .day { min-height: 95px; background: #fafafa; border: 1px solid var(--border); border-radius: 4px; padding: 6px; font-size: 0.85rem; display: flex; flex-direction: column; }
+    .day { min-height: 95px; background: var(--day-bg); border: 1px solid var(--border); border-radius: 4px; padding: 6px; font-size: 0.85rem; display: flex; flex-direction: column; transition: background 0.3s ease; }
     .day.empty { background: transparent; border: none; }
     .day-number { font-weight: bold; margin-bottom: 4px; }
     
     .event-pill {
       background: var(--accent);
-      color: white;
+      color: var(--pill-text);
       padding: 3px 6px;
       border-radius: 3px;
       font-size: 0.72rem;
@@ -88,11 +121,11 @@
     .event-item { padding: 10px 0; border-bottom: 1px solid var(--border); }
     .event-item:last-child { border-bottom: none; }
     .event-title { font-weight: bold; color: var(--primary); text-decoration: none; display: block; }
-    .event-meta { font-size: 0.8rem; color: #666; margin-top: 2px; }
+    .event-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
 
     form { display: flex; flex-direction: column; gap: 10px; }
-    input, button { padding: 10px; border: 1px solid var(--border); border-radius: 4px; }
-    button.submit-btn { background: var(--primary); color: white; border: none; font-weight: bold; cursor: pointer; }
+    input, button { padding: 10px; border: 1px solid var(--border); border-radius: 4px; background: var(--input-bg); color: var(--text); }
+    button.submit-btn { background: var(--primary); color: #ffffff; border: none; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -103,7 +136,10 @@
 
   <div class="status-bar">
     <span id="lastUpdated">Syncing with live feed...</span>
-    <button class="sync-btn" onclick="fetchLiveEvents()">Sync Now</button>
+    <div class="controls-group">
+      <button class="btn theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+      <button class="btn" onclick="fetchLiveEvents()">Sync Now</button>
+    </div>
   </div>
 
   <div class="container">
@@ -138,7 +174,30 @@
   </div>
 
   <script>
-    // Initial fallback dataset
+    // Theme Management
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 
+        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      setTheme(savedTheme);
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      const themeBtn = document.getElementById('themeToggle');
+      if (themeBtn) {
+        themeBtn.textContent = theme === 'dark' ? '☀️ Light Mode' : '🌙 Dark Mode';
+      }
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+    }
+
+    initTheme();
+
+    // Event Data Management
     let events = [
       { day: 1, title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html" },
       { day: 8, title: "Two-Day Preview", time: "8:30 am - 2:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html" },
@@ -154,7 +213,6 @@
       statusEl.textContent = 'Checking for daily updates...';
 
       try {
-        // Fetch fresh JSON generated by daily background job
         const response = await fetch('./events.json?cachebuster=' + new Date().getTime());
         if (response.ok) {
           const liveData = await response.json();
@@ -164,7 +222,7 @@
           }
         }
       } catch (err) {
-        console.log('Using local or cached event data.');
+        console.log('Using cached or default event data.');
         const cached = localStorage.getItem('ccu_events');
         if (cached) events = JSON.parse(cached);
       }
@@ -239,9 +297,8 @@
       this.reset();
     });
 
-    // Automatically check for daily updates on page load and every midnight
     fetchLiveEvents();
-    setInterval(fetchLiveEvents, 1000 * 60 * 60 * 12); // Re-sync twice daily
+    setInterval(fetchLiveEvents, 1000 * 60 * 60 * 12);
   </script>
 </body>
 </html>
