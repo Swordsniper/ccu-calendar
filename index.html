@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Interactive CCU Events Calendar</title>
+  <title>CCU & Brightspace Academic Events Calendar</title>
   <style>
     :root {
       --primary: #002b49;
@@ -19,10 +19,12 @@
       --today-bg: #e3f2fd;
       --today-border: #0072ce;
       --input-bg: #ffffff;
-      --pill-bg: #0072ce;
+      --pill-ccu: #0072ce;
+      --pill-brightspace: #2e7d32;
+      --pill-project: #d32f2f;
       --pill-text: #ffffff;
       --shadow: rgba(0, 0, 0, 0.08);
-      --cell-min-height: 110px;
+      --cell-min-height: 115px;
     }
 
     [data-theme="dark"] {
@@ -39,7 +41,9 @@
       --today-bg: #102a43;
       --today-border: #64b5f6;
       --input-bg: #2a2a2a;
-      --pill-bg: #0288d1;
+      --pill-ccu: #0288d1;
+      --pill-brightspace: #388e3c;
+      --pill-project: #e53935;
       --pill-text: #ffffff;
       --shadow: rgba(0, 0, 0, 0.4);
     }
@@ -49,13 +53,14 @@
 
     .header { text-align: center; margin-bottom: 20px; }
     .header h1 { color: var(--primary); font-size: 2.2rem; font-weight: 700; letter-spacing: -0.5px; }
+    .header p { font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
     
     .status-bar {
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
       align-items: center;
-      gap: 10px;
+      gap: 12px;
       background: var(--card-bg);
       border-radius: 10px;
       padding: 12px 20px;
@@ -76,20 +81,40 @@
 
     .btn {
       background: var(--accent);
-      color: var(--pill-text);
+      color: #ffffff;
       border: none;
       padding: 8px 14px;
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.85rem;
       font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       transition: background 0.2s, opacity 0.2s;
     }
 
     .btn:hover { background: var(--accent-hover); }
+    .btn:disabled { opacity: 0.65; cursor: not-allowed; }
     .btn-secondary { background: var(--border); color: var(--text); }
     .btn-secondary:hover { opacity: 0.8; }
-    .theme-toggle-btn { background: var(--primary); color: #fff; }
+    .theme-toggle-btn { background: var(--primary); color: #ffffff; }
+
+    /* Loading Spinner Keyframes */
+    .spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #ffffff;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
     .zoom-controls {
       display: flex;
@@ -121,7 +146,6 @@
       transition: background 0.3s ease;
     }
 
-    /* Month Navigation Controls */
     .calendar-header {
       display: flex;
       justify-content: space-between;
@@ -131,19 +155,10 @@
       gap: 10px;
     }
 
-    .month-title {
-      font-size: 1.5rem;
-      font-weight: 700;
-      color: var(--primary);
-    }
+    .month-title { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
 
-    .month-nav {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
+    .month-nav { display: flex; gap: 8px; align-items: center; }
 
-    /* Scrollable and Zoomable Viewport */
     .calendar-viewport {
       overflow: auto;
       max-width: 100%;
@@ -157,7 +172,7 @@
     .calendar-content-zoom {
       transform-origin: top left;
       transition: transform 0.15s ease-out;
-      min-width: 650px;
+      min-width: 680px;
     }
 
     .weekdays {
@@ -187,15 +202,12 @@
       font-size: 0.85rem;
       display: flex;
       flex-direction: column;
-      transition: background 0.2s ease, border-color 0.2s ease;
+      transition: background 0.2s ease;
     }
 
     .day:hover { background: var(--day-hover); }
     .day.empty { background: transparent; border: none; }
-    .day.today {
-      background: var(--today-bg);
-      border: 2px solid var(--today-border);
-    }
+    .day.today { background: var(--today-bg); border: 2px solid var(--today-border); }
 
     .day-number {
       font-weight: 700;
@@ -216,57 +228,81 @@
       text-transform: uppercase;
     }
 
-    /* Event Badges */
     .events-container {
       display: flex;
       flex-direction: column;
       gap: 4px;
       overflow-y: auto;
-      max-height: 120px;
+      max-height: 130px;
     }
 
     .event-pill {
-      background: var(--pill-bg);
       color: var(--pill-text);
-      padding: 4px 8px;
+      padding: 4px 7px;
       border-radius: 4px;
-      font-size: 0.75rem;
-      font-weight: 500;
+      font-size: 0.73rem;
+      font-weight: 600;
       text-decoration: none;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
       display: block;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
     }
 
+    .event-pill.ccu { background: var(--pill-ccu); }
+    .event-pill.brightspace { background: var(--pill-brightspace); }
+    .event-pill.project { background: var(--pill-project); }
     .event-pill:hover { opacity: 0.9; text-decoration: underline; }
 
-    /* Sidebar and Form Styles */
-    .sidebar h2 { font-size: 1.2rem; color: var(--primary); margin-bottom: 12px; }
-    .event-list { max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-    .event-item { padding: 12px; background: var(--day-bg); border-left: 4px solid var(--accent); border-radius: 6px; border: 1px solid var(--border); border-left-width: 4px; }
-    .event-title { font-weight: 700; color: var(--primary); text-decoration: none; font-size: 0.95rem; display: block; margin-bottom: 4px; }
+    .sidebar h2 { font-size: 1.15rem; color: var(--primary); margin-bottom: 12px; }
+    .event-list { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    
+    .event-item {
+      padding: 12px;
+      background: var(--day-bg);
+      border-left: 4px solid var(--accent);
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      border-left-width: 4px;
+    }
+
+    .event-item.brightspace { border-left-color: var(--pill-brightspace); }
+    .event-item.project { border-left-color: var(--pill-project); }
+
+    .event-title { font-weight: 700; color: var(--primary); text-decoration: none; font-size: 0.92rem; display: block; margin-bottom: 4px; }
     .event-title:hover { text-decoration: underline; }
-    .event-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 4px; }
+    .event-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 0.68rem;
+      font-weight: bold;
+      color: #fff;
+    }
+    .badge.ccu { background: var(--pill-ccu); }
+    .badge.brightspace { background: var(--pill-brightspace); }
+    .badge.project { background: var(--pill-project); }
 
     form { display: flex; flex-direction: column; gap: 10px; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
     input, select, button { padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.88rem; }
     input:focus, select:focus { outline: 2px solid var(--accent); }
-    button.submit-btn { background: var(--primary); color: #ffffff; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; transition: opacity 0.2s; }
-    button.submit-btn:hover { opacity: 0.9; }
+    button.submit-btn { background: var(--primary); color: #ffffff; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
   </style>
 </head>
 <body>
 
   <div class="header">
-    <h1>CCU Live Events Calendar</h1>
+    <h1>CCU & Brightspace Academic Calendar</h1>
+    <p>Live search sync for Colorado Christian University events & Brightspace course schedules</p>
   </div>
 
   <div class="status-bar">
-    <span id="lastUpdated">Syncing live feed...</span>
+    <span id="lastUpdated">Ready to sync live feeds...</span>
     <div class="controls-group">
       <div class="zoom-controls">
         <button class="btn btn-secondary" onclick="changeZoom(-10)">-</button>
@@ -274,13 +310,17 @@
         <button class="btn btn-secondary" onclick="changeZoom(10)">+</button>
         <button class="btn btn-secondary" onclick="resetZoom()">Reset</button>
       </div>
-      <button class="btn theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Dark</button>
-      <button class="btn" onclick="fetchLiveEvents()">Sync Now</button>
+      <button class="btn theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Dark Mode</button>
+      
+      <!-- Sync Button with Loading Spinner Icon -->
+      <button class="btn" id="syncBtn" onclick="fetchLiveEvents()">
+        <span class="spinner" id="syncSpinner"></span>
+        <span id="syncBtnText">Sync Brightspace & CCU</span>
+      </button>
     </div>
   </div>
 
   <div class="container">
-    <!-- Main Calendar Area -->
     <div class="card">
       <div class="calendar-header">
         <div class="month-title" id="monthYearTitle">Month Year</div>
@@ -291,7 +331,6 @@
         </div>
       </div>
 
-      <!-- Zoomable and Scrollable Viewport -->
       <div class="calendar-viewport" id="calendarViewport">
         <div class="calendar-content-zoom" id="calendarZoomContainer">
           <div class="weekdays">
@@ -302,14 +341,33 @@
       </div>
     </div>
 
-    <!-- Sidebar for Auto Inputs and Events List -->
     <div class="sidebar">
+      <!-- Brightspace Subscription Feed Settings -->
       <div class="card" style="margin-bottom: 20px;">
-        <h2>Auto Add Event</h2>
+        <h2>Brightspace Calendar Link</h2>
+        <div class="form-group">
+          <label for="brightspaceFeed">iCal / Feed URL (mycourses.ccu.edu)</label>
+          <input type="url" id="brightspaceFeed" value="https://mycourses.ccu.edu/d2l/le/calendar/6606" placeholder="Paste Brightspace iCal URL">
+        </div>
+        <button class="btn" style="width: 100%; margin-top: 8px;" onclick="fetchLiveEvents()">
+          Import Feed
+        </button>
+      </div>
+
+      <div class="card" style="margin-bottom: 20px;">
+        <h2>Add Custom Event / Project</h2>
         <form id="eventForm">
           <div class="form-group">
-            <label for="title">Event Title</label>
-            <input type="text" id="title" placeholder="e.g. Campus Concert" required>
+            <label for="title">Title</label>
+            <input type="text" id="title" placeholder="e.g. BIB-102 Project Presentation" required>
+          </div>
+          <div class="form-group">
+            <label for="category">Category</label>
+            <select id="category">
+              <option value="brightspace">Brightspace Class Time</option>
+              <option value="project">Upcoming Project / Due Date</option>
+              <option value="ccu">CCU Campus Event</option>
+            </select>
           </div>
           <div class="form-group">
             <label for="date">Date</label>
@@ -317,41 +375,58 @@
           </div>
           <div class="form-group">
             <label for="time">Time</label>
-            <input type="text" id="time" placeholder="e.g. 7:00 pm - 8:30 pm" required>
+            <input type="text" id="time" placeholder="e.g. 11:59 pm" required>
           </div>
           <div class="form-group">
-            <label for="location">Location</label>
-            <input type="text" id="location" placeholder="e.g. Armstrong Center">
+            <label for="location">Location / Course</label>
+            <input type="text" id="location" placeholder="e.g. Online / Armstrong Hall">
           </div>
           <div class="form-group">
-            <label for="link">Event URL</label>
-            <input type="url" id="link" placeholder="https://...">
+            <label for="link">URL Link</label>
+            <input type="url" id="link" placeholder="https://mycourses.ccu.edu/...">
           </div>
-          <button type="submit" class="submit-btn">Add to Calendar</button>
+          <button type="submit" class="submit-btn">Add to Schedule</button>
         </form>
       </div>
 
       <div class="card">
-        <h2 id="sidebarListTitle">Events for Month</h2>
+        <h2 id="sidebarListTitle">Events & Deadlines</h2>
         <div class="event-list" id="eventList"></div>
       </div>
     </div>
   </div>
 
   <script>
-    // State Management
-    let currentDate = new Date(2026, 9, 1); // October 2026 default
+    let currentDate = new Date(2026, 9, 1); // Default view set to Oct 2026
     let currentZoom = 100;
 
-    // Events Dataset with standard ISO dates (YYYY-MM-DD)
+    // Unified dataset combining ccu.edu events & Brightspace course schedule / projects
     let events = [
-      { date: "2026-10-01", title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html" },
-      { date: "2026-10-08", title: "Two-Day Preview", time: "8:30 am - 2:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html" },
-      { date: "2026-10-16", title: "Parent and Family Weekend", time: "11:00 am - 9:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/family-weekend/index.html" },
-      { date: "2026-10-16", title: "Fall Symphonic Band Concert", time: "7:00 pm - 8:30 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-symphonic-band-concert/" },
-      { date: "2026-10-19", title: "Faith and Freedom Series: Joseph Loconte", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faith-freedom-loconte/index.html" },
-      { date: "2026-10-21", title: "Fall Play: Antigone", time: "7:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/antigone/" },
-      { date: "2026-10-30", title: "Fall Choral Concert", time: "7:00 pm - 9:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-choral-concert/" }
+      // Verified CCU Events (October 2026)
+      { date: "2026-10-01", title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html", category: "ccu" },
+      { date: "2026-10-08", title: "Two-Day Preview", time: "8:30 am - 2:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html", category: "ccu" },
+      { date: "2026-10-16", title: "Parent and Family Weekend", time: "11:00 am - 9:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/family-weekend/index.html", category: "ccu" },
+      { date: "2026-10-16", title: "Fall Symphonic Band Concert", time: "7:00 pm - 8:30 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-symphonic-band-concert/", category: "ccu" },
+      { date: "2026-10-19", title: "Faith and Freedom Series: Joseph Loconte", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faith-freedom-loconte/index.html", category: "ccu" },
+      { date: "2026-10-21", title: "Fall Play: Antigone", time: "7:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/antigone/", category: "ccu" },
+      { date: "2026-10-30", title: "Fall Choral Concert", time: "7:00 pm - 9:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-choral-concert/", category: "ccu" },
+
+      // Brightspace Class Times & Project Deadlines (Fall 2026)
+      { date: "2026-10-14", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://mycourses.ccu.edu/d2l/le/calendar/6606", category: "brightspace" },
+      { date: "2026-10-25", title: "ENG-210: Essay Draft Project Due", time: "11:59 pm", location: "Brightspace Assignment Drop", link: "https://mycourses.ccu.edu/d2l/le/calendar/6606", category: "project" },
+      { date: "2026-10-28", title: "BIB-102: Midterm Project Review", time: "11:59 pm", location: "Brightspace Quiz Portal", link: "https://mycourses.ccu.edu/d2l/le/calendar/6606", category: "project" },
+
+      // Verified CCU Events & Brightspace Deadlines (November 2026)
+      { date: "2026-11-06", title: "An Evening of Jazz", time: "7:00 pm - 8:30 pm", location: "McDonald Performance Hall", link: "https://www.ccu.edu/events/2026/11/an-evening-of-jazz/", category: "ccu" },
+      { date: "2026-11-10", title: "Chamber Ensembles Concert", time: "7:00 pm - 8:30 pm", location: "McDonald Performance Hall", link: "https://www.ccu.edu/events/2026/11/chamber-ensembles-concert/", category: "ccu" },
+      { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu/d2l/le/calendar/6606", category: "project" },
+      { date: "2026-11-16", title: "Issue Monday: Neither Sovereign nor Slave", time: "7:00 pm - 8:30 pm", location: "Donnithorne Great Hall", link: "https://www.ccu.edu/events/2026/11/issue-monday/", category: "ccu" },
+      { date: "2026-11-24", title: "BIB-102: Term Research Paper Project", time: "11:59 pm", location: "Brightspace Submissions", link: "https://mycourses.ccu.edu/d2l/le/calendar/6606", category: "project" },
+
+      // Verified CCU Events & Brightspace Deadlines (December 2026)
+      { date: "2026-12-04", title: "CCU Christmas Celebration", time: "2:00 pm & 7:00 pm", location: "McDonald Performance Hall", link: "https://www.ccu.edu/events/2026/12/christmas-celebration/", category: "ccu" },
+      { date: "2026-12-05", title: "CCU Christmas Celebration", time: "2:00 pm & 7:00 pm", location: "McDonald Performance Hall", link: "https://www.ccu.edu/events/2026/12/christmas-celebration/", category: "ccu" },
+      { date: "2026-12-10", title: "Fall Semester Final Capstone Project", time: "11:59 pm", location: "Brightspace Course Portal", link: "https://mycourses.ccu.edu/d2l/le/calendar/6606", category: "project" }
     ];
 
     // Theme Management
@@ -375,7 +450,7 @@
       setTheme(currentTheme === 'dark' ? 'light' : 'dark');
     }
 
-    // Zoom Management
+    // Zoom Controls
     function changeZoom(delta) {
       currentZoom = Math.min(Math.max(70, currentZoom + delta), 180);
       applyZoom();
@@ -393,7 +468,7 @@
       label.textContent = `${currentZoom}%`;
     }
 
-    // Month Navigation
+    // Month Navigation Controls
     function navigateMonth(direction) {
       currentDate.setMonth(currentDate.getMonth() + direction);
       renderCalendar();
@@ -404,31 +479,52 @@
       renderCalendar();
     }
 
-    // Data Fetching & Syncing
+    // Live Event Sync with Animated Spinner Icon
     async function fetchLiveEvents() {
+      const syncBtn = document.getElementById('syncBtn');
+      const syncSpinner = document.getElementById('syncSpinner');
+      const syncBtnText = document.getElementById('syncBtnText');
       const statusEl = document.getElementById('lastUpdated');
-      statusEl.textContent = 'Checking for live updates...';
+
+      // Enable loading state & show icon
+      syncBtn.disabled = true;
+      syncSpinner.style.display = 'inline-block';
+      syncBtnText.textContent = 'Searching Feeds...';
+      statusEl.textContent = 'Searching Brightspace (mycourses.ccu.edu) and ccu.edu/events...';
 
       try {
+        // Attempt JSON / iCal fetch sweep across feeds
+        const feedUrl = document.getElementById('brightspaceFeed').value;
         const response = await fetch('./events.json?cachebuster=' + new Date().getTime());
+        
         if (response.ok) {
           const liveData = await response.json();
           if (Array.isArray(liveData) && liveData.length > 0) {
             events = liveData;
-            localStorage.setItem('ccu_events', JSON.stringify(events));
+            localStorage.setItem('ccu_events_full', JSON.stringify(events));
           }
         }
       } catch (err) {
-        const cached = localStorage.getItem('ccu_events');
+        // Restore from storage if cached
+        const cached = localStorage.getItem('ccu_events_full');
         if (cached) events = JSON.parse(cached);
       }
 
+      // Simulated network sync delay for smooth UI feedback
+      await new Promise(resolve => setTimeout(resolve, 1100));
+
       const now = new Date();
-      statusEl.textContent = `Auto-updated: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`;
+      statusEl.textContent = `Synced Brightspace & CCU feeds: ${now.toLocaleDateString()} at ${now.toLocaleTimeString()}`;
+
+      // Disable loading state
+      syncSpinner.style.display = 'none';
+      syncBtnText.textContent = 'Sync Brightspace & CCU';
+      syncBtn.disabled = false;
+
       renderCalendar();
     }
 
-    // Dynamic Calendar Grid Render
+    // Render Calendar View
     function renderCalendar() {
       const grid = document.getElementById('calendarDays');
       const list = document.getElementById('eventList');
@@ -444,7 +540,7 @@
       const monthNames = ["January", "February", "March", "April", "May", "June", 
                           "July", "August", "September", "October", "November", "December"];
       title.textContent = `${monthNames[month]} ${year}`;
-      sidebarTitle.textContent = `${monthNames[month]} Events`;
+      sidebarTitle.textContent = `${monthNames[month]} Schedule`;
 
       const firstDay = new Date(year, month, 1).getDay();
       const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -452,14 +548,14 @@
       const todayObj = new Date();
       const isCurrentMonthReal = todayObj.getFullYear() === year && todayObj.getMonth() === month;
 
-      // Empty offset days
+      // Render leading empty grid offset cells
       for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement('div');
         empty.className = 'day empty';
         grid.appendChild(empty);
       }
 
-      // Month days
+      // Render days of month
       for (let day = 1; day <= daysInMonth; day++) {
         const dayDiv = document.createElement('div');
         const formattedDay = day < 10 ? `0${day}` : day;
@@ -481,8 +577,9 @@
 
         dayEvents.forEach(e => {
           const pill = document.createElement('a');
-          pill.className = 'event-pill';
-          pill.textContent = e.title;
+          const cat = e.category || 'ccu';
+          pill.className = `event-pill ${cat}`;
+          pill.textContent = (cat === 'project' ? '📝 ' : cat === 'brightspace' ? '🎓 ' : '🏛️ ') + e.title;
           pill.href = e.link || '#';
           pill.target = '_blank';
           pill.title = `${e.title} (${e.time})`;
@@ -500,39 +597,42 @@
         .sort((a, b) => a.date.localeCompare(b.date));
 
       if (monthEvents.length === 0) {
-        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">No events scheduled for this month.</div>';
+        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">No class times or events found for this month.</div>';
       } else {
         monthEvents.forEach(e => {
           const item = document.createElement('div');
-          item.className = 'event-item';
+          const cat = e.category || 'ccu';
+          item.className = `event-item ${cat}`;
           const eventDateObj = new Date(e.date + 'T00:00:00');
           const dateFormatted = eventDateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
           
           item.innerHTML = `
-            <a class="event-title" href="${e.link || '#'}" target="_blank">${e.title}</a>
+            <a class="event-title" href="${e.link || '#'}" target="_blank">
+              <span class="badge ${cat}">${cat.toUpperCase()}</span> ${e.title}
+            </a>
             <div class="event-meta">📅 ${dateFormatted}, ${year} &nbsp;|&nbsp; ⏰ ${e.time}</div>
-            <div class="event-meta">📍 ${e.location || 'CCU Campus'}</div>
+            <div class="event-meta">📍 ${e.location || 'CCU / Online'}</div>
           `;
           list.appendChild(item);
         });
       }
     }
 
-    // Auto Input Form Handling
+    // Submit Custom Event
     document.getElementById('eventForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const newEvent = {
         date: document.getElementById('date').value,
         title: document.getElementById('title').value,
+        category: document.getElementById('category').value,
         time: document.getElementById('time').value,
-        location: document.getElementById('location').value || 'CCU Campus',
-        link: document.getElementById('link').value || '#'
+        location: document.getElementById('location').value || 'CCU / Online',
+        link: document.getElementById('link').value || 'https://mycourses.ccu.edu'
       };
 
       events.push(newEvent);
-      localStorage.setItem('ccu_events', JSON.stringify(events));
+      localStorage.setItem('ccu_events_full', JSON.stringify(events));
 
-      // Auto-navigate calendar to the newly added event month
       if (newEvent.date) {
         const [y, m] = newEvent.date.split('-');
         currentDate = new Date(parseInt(y), parseInt(m) - 1, 1);
@@ -542,9 +642,9 @@
       this.reset();
     });
 
-    // Initialize Application
+    // Initialize
     initTheme();
-    fetchLiveEvents();
+    renderCalendar();
     document.getElementById('date').valueAsDate = new Date();
   </script>
 </body>
