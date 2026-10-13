@@ -19,11 +19,15 @@
       --today-bg: #e3f2fd;
       --today-border: #0072ce;
       --input-bg: #ffffff;
-      --pill-ccu: #0072ce;
-      --pill-brightspace: #2e7d32;
-      --pill-project: #d32f2f;
-      --pill-class: #6a1b9a;
-      --pill-text: #ffffff;
+
+      /* Color Scheme Customization */
+      --pill-ccu: #eab308;         /* Yellow for School Events */
+      --pill-ccu-text: #000000;
+      --pill-project: #dc2626;     /* Red for Things Due / Projects */
+      --pill-project-text: #ffffff;
+      --pill-class: #0072ce;       /* Blue for Weekly Classes */
+      --pill-class-text: #ffffff;
+
       --shadow: rgba(0, 0, 0, 0.08);
       --cell-min-height: 115px;
     }
@@ -42,11 +46,15 @@
       --today-bg: #102a43;
       --today-border: #64b5f6;
       --input-bg: #2a2a2a;
-      --pill-ccu: #0288d1;
-      --pill-brightspace: #388e3c;
-      --pill-project: #e53935;
-      --pill-class: #ab47bc;
-      --pill-text: #ffffff;
+
+      /* Dark Mode Color Scheme */
+      --pill-ccu: #facc15;         /* Vibrant Yellow */
+      --pill-ccu-text: #000000;
+      --pill-project: #ef4444;     /* Vibrant Red */
+      --pill-project-text: #ffffff;
+      --pill-class: #3b82f6;       /* Vibrant Blue */
+      --pill-class-text: #ffffff;
+
       --shadow: rgba(0, 0, 0, 0.4);
     }
 
@@ -176,7 +184,6 @@
       min-width: 680px;
     }
 
-    /* Fixed minmax columns prevent box shrinkage when text is typed */
     .weekdays {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -242,11 +249,10 @@
     }
 
     .event-pill {
-      color: var(--pill-text);
       padding: 4px 7px;
       border-radius: 4px;
       font-size: 0.73rem;
-      font-weight: 600;
+      font-weight: 700;
       text-decoration: none;
       white-space: nowrap;
       overflow: hidden;
@@ -256,10 +262,9 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.12);
     }
 
-    .event-pill.ccu { background: var(--pill-ccu); }
-    .event-pill.brightspace { background: var(--pill-brightspace); }
-    .event-pill.project { background: var(--pill-project); }
-    .event-pill.classtime { background: var(--pill-class); }
+    .event-pill.ccu { background: var(--pill-ccu); color: var(--pill-ccu-text); }
+    .event-pill.project { background: var(--pill-project); color: var(--pill-project-text); }
+    .event-pill.classtime, .event-pill.brightspace { background: var(--pill-class); color: var(--pill-class-text); }
     .event-pill:hover { opacity: 0.9; text-decoration: underline; }
 
     .sidebar h2 { font-size: 1.15rem; color: var(--primary); margin-bottom: 12px; }
@@ -268,16 +273,16 @@
     .event-item {
       padding: 12px;
       background: var(--day-bg);
-      border-left: 4px solid var(--accent);
+      border-left: 5px solid var(--accent);
       border-radius: 6px;
       border: 1px solid var(--border);
-      border-left-width: 4px;
+      border-left-width: 5px;
       word-break: break-word;
     }
 
-    .event-item.brightspace { border-left-color: var(--pill-brightspace); }
+    .event-item.ccu { border-left-color: var(--pill-ccu); }
     .event-item.project { border-left-color: var(--pill-project); }
-    .event-item.classtime { border-left-color: var(--pill-class); }
+    .event-item.classtime, .event-item.brightspace { border-left-color: var(--pill-class); }
 
     .event-title { font-weight: 700; color: var(--primary); text-decoration: none; font-size: 0.92rem; display: block; margin-bottom: 4px; word-break: break-word; }
     .event-title:hover { text-decoration: underline; }
@@ -289,12 +294,10 @@
       border-radius: 3px;
       font-size: 0.68rem;
       font-weight: bold;
-      color: #fff;
     }
-    .badge.ccu { background: var(--pill-ccu); }
-    .badge.brightspace { background: var(--pill-brightspace); }
-    .badge.project { background: var(--pill-project); }
-    .badge.classtime { background: var(--pill-class); }
+    .badge.ccu { background: var(--pill-ccu); color: var(--pill-ccu-text); }
+    .badge.project { background: var(--pill-project); color: var(--pill-project-text); }
+    .badge.classtime, .badge.brightspace { background: var(--pill-class); color: var(--pill-class-text); }
 
     form { display: flex; flex-direction: column; gap: 10px; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
@@ -308,7 +311,7 @@
 
   <div class="header">
     <h1>CCU & Brightspace Academic Calendar</h1>
-    <p>Live search sync for Colorado Christian University events & Brightspace course schedules</p>
+    <p>Yellow = School Events | Red = Things Due | Blue = Weekly Classes</p>
   </div>
 
   <div class="status-bar">
@@ -363,19 +366,18 @@
       </div>
 
       <div class="card" style="margin-bottom: 20px;">
-        <h2>Add Event or Class Time</h2>
+        <h2>Add Event / Class</h2>
         <form id="eventForm">
           <div class="form-group">
             <label for="title">Title / Course Code</label>
             <input type="text" id="title" placeholder="e.g. BIB-102 Christian Doctrine" required>
           </div>
           <div class="form-group">
-            <label for="category">Category</label>
+            <label for="category">Category & Color</label>
             <select id="category">
-              <option value="classtime">📚 Regular Class Time</option>
-              <option value="project">📝 Project / Assignment Due</option>
-              <option value="brightspace">🎓 Brightspace Course Event</option>
-              <option value="ccu">🏛️ CCU Campus Event</option>
+              <option value="ccu">🟨 School Event (Yellow)</option>
+              <option value="project">🟥 Thing Due / Assignment (Red)</option>
+              <option value="classtime">🟦 Weekly Class Time (Blue)</option>
             </select>
           </div>
           <div class="form-group">
@@ -409,9 +411,9 @@
     let currentDate = new Date(2026, 9, 1);
     let currentZoom = 100;
 
-    // Default Baseline Schedule including CCU Campus Events & Class Times
+    // Baseline Schedule with Color Categories
     const defaultBaselineEvents = [
-      // CCU Events (October 2026)
+      // Yellow: CCU School Events
       { date: "2026-10-01", title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html", category: "ccu" },
       { date: "2026-10-08", title: "Two-Day Preview", time: "8:30 am - 2:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html", category: "ccu" },
       { date: "2026-10-16", title: "Parent and Family Weekend", time: "11:00 am - 9:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/family-weekend/index.html", category: "ccu" },
@@ -420,7 +422,7 @@
       { date: "2026-10-21", title: "Fall Play: Antigone", time: "7:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/antigone/", category: "ccu" },
       { date: "2026-10-30", title: "Fall Choral Concert", time: "7:00 pm - 9:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-choral-concert/", category: "ccu" },
 
-      // Class Times & Weekly Course Schedule (Fall 2026)
+      // Blue: Weekly Class Times
       { date: "2026-10-05", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://mycourses.ccu.edu", category: "classtime" },
       { date: "2026-10-07", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://mycourses.ccu.edu", category: "classtime" },
       { date: "2026-10-09", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://mycourses.ccu.edu", category: "classtime" },
@@ -429,7 +431,7 @@
       { date: "2026-10-12", title: "MGT-301: Principles of Management", time: "1:00 pm - 2:15 pm", location: "Anschutz Hall 210", link: "https://mycourses.ccu.edu", category: "classtime" },
       { date: "2026-10-14", title: "MGT-301: Principles of Management", time: "1:00 pm - 2:15 pm", location: "Anschutz Hall 210", link: "https://mycourses.ccu.edu", category: "classtime" },
 
-      // Projects & Assignment Deadlines
+      // Red: Things Due / Projects
       { date: "2026-10-25", title: "ENG-210: Essay Draft Project Due", time: "11:59 pm", location: "Brightspace Assignment Drop", link: "https://mycourses.ccu.edu", category: "project" },
       { date: "2026-10-28", title: "BIB-102: Midterm Project Review", time: "11:59 pm", location: "Brightspace Quiz Portal", link: "https://mycourses.ccu.edu", category: "project" },
       { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu", category: "project" },
@@ -437,12 +439,10 @@
       { date: "2026-12-10", title: "Fall Semester Final Capstone Project", time: "11:59 pm", location: "Brightspace Course Portal", link: "https://mycourses.ccu.edu", category: "project" }
     ];
 
-    // Key generator for deduplication
     function getEventKey(item) {
       return `${item.date || ''}_${item.title || ''}_${item.time || ''}`.toLowerCase().trim();
     }
 
-    // Load master events list from localStorage or baseline
     function loadMasterEvents() {
       const stored = localStorage.getItem('ccu_master_calendar');
       if (!stored) {
@@ -466,7 +466,6 @@
       localStorage.setItem('ccu_master_calendar', JSON.stringify(list));
     }
 
-    // Additive Smart Sync Functionality
     async function fetchLiveEvents() {
       const syncBtn = document.getElementById('syncBtn');
       const syncSpinner = document.getElementById('syncSpinner');
@@ -501,7 +500,7 @@
           }
         }
       } catch (err) {
-        console.log('No new external file found. Keeping all existing schedule items intact.');
+        console.log('Keeping existing schedule items intact.');
       }
 
       await new Promise(resolve => setTimeout(resolve, 800));
@@ -520,7 +519,6 @@
       renderCalendar();
     }
 
-    // Theme Management
     function initTheme() {
       const savedTheme = localStorage.getItem('theme') || 
         (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
@@ -541,7 +539,6 @@
       setTheme(currentTheme === 'dark' ? 'light' : 'dark');
     }
 
-    // Zoom Controls
     function changeZoom(delta) {
       currentZoom = Math.min(Math.max(70, currentZoom + delta), 180);
       applyZoom();
@@ -559,7 +556,6 @@
       label.textContent = `${currentZoom}%`;
     }
 
-    // Month Navigation Controls
     function navigateMonth(direction) {
       currentDate.setMonth(currentDate.getMonth() + direction);
       renderCalendar();
@@ -570,7 +566,6 @@
       renderCalendar();
     }
 
-    // Render Calendar Grid
     function renderCalendar() {
       const grid = document.getElementById('calendarDays');
       const list = document.getElementById('eventList');
@@ -625,7 +620,7 @@
           const pill = document.createElement('a');
           const cat = e.category || 'ccu';
           pill.className = `event-pill ${cat}`;
-          const icon = cat === 'project' ? '📝 ' : cat === 'brightspace' ? '🎓 ' : cat === 'classtime' ? '📚 ' : '🏛️ ';
+          const icon = cat === 'project' ? '🟥 ' : cat === 'classtime' || cat === 'brightspace' ? '🟦 ' : '🟨 ';
           pill.textContent = icon + e.title;
           pill.href = e.link || '#';
           pill.target = '_blank';
@@ -651,10 +646,11 @@
           item.className = `event-item ${cat}`;
           const eventDateObj = new Date(e.date + 'T00:00:00');
           const dateFormatted = eventDateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          const label = cat === 'project' ? 'DUE / PROJECT' : cat === 'classtime' || cat === 'brightspace' ? 'CLASS TIME' : 'SCHOOL EVENT';
           
           item.innerHTML = `
             <a class="event-title" href="${e.link || '#'}" target="_blank">
-              <span class="badge ${cat}">${cat.toUpperCase()}</span> ${e.title}
+              <span class="badge ${cat}">${label}</span> ${e.title}
             </a>
             <div class="event-meta">📅 ${dateFormatted}, ${year} &nbsp;|&nbsp; ⏰ ${e.time}</div>
             <div class="event-meta">📍 ${e.location || 'CCU / Online'}</div>
@@ -664,7 +660,6 @@
       }
     }
 
-    // Submit New Class Time or Event
     document.getElementById('eventForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const newEvent = {
