@@ -20,12 +20,11 @@
       --today-border: #0072ce;
       --input-bg: #ffffff;
 
-      /* High-contrast category colors */
-      --pill-ccu: #eab308;         /* Yellow: School Events */
+      --pill-ccu: #eab308;
       --pill-ccu-text: #000000;
-      --pill-project: #dc2626;     /* Red: Things Due / Projects */
+      --pill-project: #dc2626;
       --pill-project-text: #ffffff;
-      --pill-class: #0072ce;       /* Blue: Weekly Classes */
+      --pill-class: #0072ce;
       --pill-class-text: #ffffff;
 
       --shadow: rgba(0, 0, 0, 0.08);
@@ -47,62 +46,37 @@
       --today-border: #64b5f6;
       --input-bg: #2a2a2a;
 
-      --pill-ccu: #facc15;         /* Vibrant Yellow */
+      --pill-ccu: #facc15;
       --pill-ccu-text: #000000;
-      --pill-project: #ef4444;     /* Vibrant Red */
+      --pill-project: #ef4444;
       --pill-project-text: #ffffff;
-      --pill-class: #3b82f6;       /* Vibrant Blue */
+      --pill-class: #3b82f6;
       --pill-class-text: #ffffff;
 
       --shadow: rgba(0, 0, 0, 0.4);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 20px; transition: background-color 0.3s ease, color 0.3s ease; }
+    body { background-color: var(--bg); color: var(--text); padding: 20px; transition: background-color 0.3s, color 0.3s; }
 
     .header { text-align: center; margin-bottom: 20px; }
     .header h1 { color: var(--primary); font-size: 2.2rem; font-weight: 700; letter-spacing: -0.5px; }
     .header p { font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
     
     .status-bar {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      background: var(--card-bg);
-      border-radius: 10px;
-      padding: 12px 20px;
-      max-width: 1300px;
-      margin: 0 auto 20px auto;
-      font-size: 0.9rem;
-      border-left: 5px solid var(--accent);
-      box-shadow: 0 4px 12px var(--shadow);
-      transition: background 0.3s ease;
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
+      background: var(--card-bg); border-radius: 10px; padding: 12px 20px; max-width: 1300px;
+      margin: 0 auto 20px auto; font-size: 0.9rem; border-left: 5px solid var(--accent);
+      box-shadow: 0 4px 12px var(--shadow); transition: background 0.3s;
     }
 
-    .controls-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
+    .controls-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
     .btn {
-      background: var(--accent);
-      color: #ffffff;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      font-weight: 600;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background 0.2s, opacity 0.2s;
+      background: var(--accent); color: #ffffff; border: none; padding: 8px 14px; border-radius: 6px;
+      cursor: pointer; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center;
+      gap: 6px; transition: background 0.2s, opacity 0.2s;
     }
-
     .btn:hover { background: var(--accent-hover); }
     .btn:disabled { opacity: 0.65; cursor: not-allowed; }
     .btn-secondary { background: var(--border); color: var(--text); }
@@ -110,214 +84,59 @@
     .theme-toggle-btn { background: var(--primary); color: #ffffff; }
 
     .spinner {
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: #ffffff;
-      animation: spin 0.8s linear infinite;
-      display: none;
+      width: 14px; height: 14px; border: 2px solid rgba(255, 255, 255, 0.3); border-radius: 50%;
+      border-top-color: #ffffff; animation: spin 0.8s linear infinite; display: none;
     }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-
-    .zoom-controls {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--day-bg);
-      padding: 4px 8px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-    }
-
+    .zoom-controls { display: flex; align-items: center; gap: 6px; background: var(--day-bg); padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); }
     .zoom-label { font-size: 0.8rem; font-weight: bold; color: var(--text-muted); min-width: 45px; text-align: center; }
 
-    /* Source Filter Control Bar (Handles both Files and Web URLs) */
     .filter-bar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 10px 15px;
-      margin-bottom: 15px;
-      flex-wrap: wrap;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 15px; margin-bottom: 15px; flex-wrap: wrap;
     }
     .filter-bar-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .filter-bar label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
     .toggle-switch { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
 
-    .container {
-      display: grid;
-      grid-template-columns: 1fr 360px;
-      gap: 20px;
-      max-width: 1300px;
-      margin: 0 auto;
-    }
-
+    .container { display: grid; grid-template-columns: 1fr 360px; gap: 20px; max-width: 1300px; margin: 0 auto; }
     @media (max-width: 980px) { .container { grid-template-columns: 1fr; } }
 
-    .card {
-      background: var(--card-bg);
-      border-radius: 10px;
-      padding: 20px;
-      box-shadow: 0 4px 12px var(--shadow);
-      transition: background 0.3s ease;
-    }
-
-    .calendar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
+    .card { background: var(--card-bg); border-radius: 10px; padding: 20px; box-shadow: 0 4px 12px var(--shadow); transition: background 0.3s; }
+    .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
     .month-title { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-
     .month-nav { display: flex; gap: 8px; align-items: center; }
 
-    .calendar-viewport {
-      overflow: auto;
-      max-width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--card-bg);
-      padding: 10px;
-      max-height: 75vh;
-    }
+    .calendar-viewport { overflow: auto; max-width: 100%; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); padding: 10px; max-height: 75vh; }
+    .calendar-content-zoom { transform-origin: top left; transition: transform 0.15s ease-out; min-width: 680px; }
 
-    .calendar-content-zoom {
-      transform-origin: top left;
-      transition: transform 0.15s ease-out;
-      min-width: 680px;
-    }
+    .weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); text-align: center; font-weight: 700; color: var(--primary); padding-bottom: 10px; border-bottom: 2px solid var(--border); font-size: 0.95rem; }
+    .days-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
 
-    .weekdays {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      text-align: center;
-      font-weight: 700;
-      color: var(--primary);
-      padding-bottom: 10px;
-      border-bottom: 2px solid var(--border);
-      font-size: 0.95rem;
-    }
-
-    .days-grid {
-      display: grid;
-      grid-template-columns: repeat(7, minmax(0, 1fr));
-      gap: 6px;
-      margin-top: 10px;
-    }
-
-    .day {
-      min-width: 0;
-      min-height: var(--cell-min-height);
-      background: var(--day-bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 8px;
-      font-size: 0.85rem;
-      display: flex;
-      flex-direction: column;
-      transition: all 0.25s ease;
-      overflow: hidden;
-    }
-
+    .day { min-width: 0; min-height: var(--cell-min-height); background: var(--day-bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; font-size: 0.85rem; display: flex; flex-direction: column; transition: all 0.25s ease; overflow: hidden; }
     .day:hover { background: var(--day-hover); }
     .day.empty { background: transparent; border: none; }
     .day.today { background: var(--today-bg); border: 2px solid var(--today-border); }
+    .day.dimmed-day { opacity: 0.25; filter: grayscale(90%); background: rgba(0, 0, 0, 0.04); }
+    [data-theme="dark"] .day.dimmed-day { background: rgba(255, 255, 255, 0.03); }
 
-    /* Dimmed State for non-matching sources */
-    .day.dimmed-day {
-      opacity: 0.25;
-      filter: grayscale(90%);
-      background: rgba(0, 0, 0, 0.04);
-    }
-    [data-theme="dark"] .day.dimmed-day {
-      background: rgba(255, 255, 255, 0.03);
-    }
+    .day-number { font-weight: 700; font-size: 0.95rem; margin-bottom: 6px; color: var(--text); display: flex; justify-content: space-between; align-items: center; }
+    .today-badge { font-size: 0.65rem; background: var(--accent); color: #ffffff; padding: 1px 5px; border-radius: 4px; text-transform: uppercase; }
 
-    .day-number {
-      font-weight: 700;
-      font-size: 0.95rem;
-      margin-bottom: 6px;
-      color: var(--text);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .today-badge {
-      font-size: 0.65rem;
-      background: var(--accent);
-      color: #fff;
-      padding: 1px 5px;
-      border-radius: 4px;
-      text-transform: uppercase;
-    }
-
-    .events-container {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      overflow-y: auto;
-      max-height: 130px;
-      width: 100%;
-    }
-
-    .event-pill {
-      padding: 4px 7px;
-      border-radius: 4px;
-      font-size: 0.73rem;
-      font-weight: 700;
-      text-decoration: none;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      display: block;
-      width: 100%;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.12);
-      transition: all 0.25s ease;
-    }
-
+    .events-container { display: flex; flex-direction: column; gap: 4px; overflow-y: auto; max-height: 130px; width: 100%; }
+    .event-pill { padding: 4px 7px; border-radius: 4px; font-size: 0.73rem; font-weight: 700; text-decoration: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; width: 100%; box-shadow: 0 1px 3px rgba(0,0,0,0.12); transition: all 0.25s ease; }
     .event-pill.ccu { background: var(--pill-ccu); color: var(--pill-ccu-text); }
     .event-pill.project { background: var(--pill-project); color: var(--pill-project-text); }
     .event-pill.classtime, .event-pill.brightspace, .event-pill.file { background: var(--pill-class); color: var(--pill-class-text); }
     .event-pill:hover { opacity: 0.9; text-decoration: underline; }
-
-    .event-pill.dimmed-pill {
-      opacity: 0.2;
-      filter: grayscale(100%);
-    }
+    .event-pill.dimmed-pill { opacity: 0.2; filter: grayscale(100%); }
 
     .sidebar h2 { font-size: 1.15rem; color: var(--primary); margin-bottom: 12px; }
     .event-list { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-    
-    .event-item {
-      padding: 12px;
-      background: var(--day-bg);
-      border-left: 5px solid var(--accent);
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      border-left-width: 5px;
-      word-break: break-word;
-      transition: all 0.25s ease;
-    }
-
-    .event-item.dimmed-item {
-      opacity: 0.3;
-      filter: grayscale(90%);
-    }
-
+    .event-item { padding: 12px; background: var(--day-bg); border-left: 5px solid var(--accent); border-radius: 6px; border: 1px solid var(--border); border-left-width: 5px; word-break: break-word; transition: all 0.25s ease; }
+    .event-item.dimmed-item { opacity: 0.3; filter: grayscale(90%); }
     .event-item.ccu { border-left-color: var(--pill-ccu); }
     .event-item.project { border-left-color: var(--pill-project); }
     .event-item.classtime, .event-item.brightspace, .event-item.file { border-left-color: var(--pill-class); }
@@ -326,51 +145,23 @@
     .event-title:hover { text-decoration: underline; }
     .event-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 3px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 
-    .badge {
-      display: inline-block;
-      padding: 2px 6px;
-      border-radius: 3px;
-      font-size: 0.68rem;
-      font-weight: bold;
-    }
+    .badge { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: 0.68rem; font-weight: 700; }
     .badge.ccu { background: var(--pill-ccu); color: var(--pill-ccu-text); }
     .badge.project { background: var(--pill-project); color: var(--pill-project-text); }
     .badge.classtime, .badge.brightspace, .badge.file { background: var(--pill-class); color: var(--pill-class-text); }
 
-    /* Drop Zone & Input Styling */
-    .file-drop-zone {
-      border: 2px dashed var(--accent);
-      border-radius: 8px;
-      padding: 14px;
-      text-align: center;
-      background: var(--day-bg);
-      cursor: pointer;
-      font-size: 0.85rem;
-      margin-top: 6px;
-      transition: background 0.2s;
-    }
+    .file-drop-zone { border: 2px dashed var(--accent); border-radius: 8px; padding: 14px; text-align: center; background: var(--day-bg); cursor: pointer; font-size: 0.85rem; margin-top: 6px; transition: background 0.2s; }
     .file-drop-zone:hover { background: var(--day-hover); }
 
-    textarea {
-      width: 100%;
-      height: 70px;
-      padding: 8px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      background: var(--input-bg);
-      color: var(--text);
-      font-size: 0.82rem;
-      resize: vertical;
-    }
-
+    textarea { width: 100%; height: 70px; padding: 8px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.82rem; resize: vertical; }
     form { display: flex; flex-direction: column; gap: 10px; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
     .checkbox-group { display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.82rem; margin-top: 2px; }
-    .checkbox-group label { font-weight: normal; color: var(--text); cursor: pointer; }
+    .checkbox-group label { font-weight: 400; color: var(--text); cursor: pointer; }
     input, select, button { padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.88rem; }
     input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); }
-    button.submit-btn { background: var(--primary); color: #ffffff; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
+    button.submit-btn { background: var(--primary); color: #ffffff; border: none; font-weight: 700; cursor: pointer; margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -390,7 +181,6 @@
         <button class="btn btn-secondary" onclick="resetZoom()">Reset</button>
       </div>
       <button class="btn theme-toggle-btn" id="themeToggle" onclick="toggleTheme()">🌙 Dark Mode</button>
-      
       <button class="btn" id="syncBtn" onclick="fetchLiveEvents()">
         <span class="spinner" id="syncSpinner"></span>
         <span id="syncBtnText">Sync Brightspace & CCU</span>
@@ -400,11 +190,10 @@
 
   <div class="container">
     <div class="card">
-      <!-- Universal Source Filter Controls (Files & Websites) -->
       <div class="filter-bar">
         <div class="filter-bar-group">
-          <label for="sourceFilterSelect">🔎 Source Filter (File or Website):</label>
-          <select id="sourceFilterSelect" onchange="updateSourceFilter()" style="max-width: 300px;">
+          <label for="sourceFilterSelect">🔎 Source Filter:</label>
+          <select id="sourceFilterSelect" onchange="updateSourceFilter()" style="max-width: 320px;">
             <option value="">-- All Sources --</option>
           </select>
         </div>
@@ -434,7 +223,6 @@
     </div>
 
     <div class="sidebar">
-      <!-- File Date Extractor / Scanner -->
       <div class="card" style="margin-bottom: 20px;">
         <h2>Scan File for Dates & Schedule</h2>
         <div class="form-group">
@@ -447,7 +235,6 @@
         <div id="fileScanStatus" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;"></div>
       </div>
 
-      <!-- Web Page URL Date Scraper -->
       <div class="card" style="margin-bottom: 20px;">
         <h2>Extract Dates from Website Link</h2>
         <div class="form-group">
@@ -461,7 +248,6 @@
         <div id="scraperStatus" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;"></div>
       </div>
 
-      <!-- Copy-Paste Import Area -->
       <div class="card" style="margin-bottom: 20px;">
         <h2>Paste Self-Service Schedule</h2>
         <div class="form-group">
@@ -471,7 +257,6 @@
         </div>
       </div>
 
-      <!-- Recurring Class Schedule Generator -->
       <div class="card" style="margin-bottom: 20px;">
         <h2>Add Self-Service Class Schedule</h2>
         <form id="classScheduleForm">
@@ -509,7 +294,6 @@
         </form>
       </div>
 
-      <!-- Single Event Form -->
       <div class="card" style="margin-bottom: 20px;">
         <h2>Add Single Event / Assignment</h2>
         <form id="eventForm">
@@ -555,29 +339,24 @@
   <script>
     let currentDate = new Date(2026, 9, 1);
     let currentZoom = 100;
-    
-    // Filtering State
     let isFilterActive = false;
     let selectedSourceFilter = '';
 
-    const defaultBaselineEvents = [
-      // Yellow: CCU School Events
-      { date: "2026-10-01", title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html", category: "ccu", source: "ccu.edu" },
-      { date: "2026-10-08", title: "Two-Day Preview", time: "8:30 am - 2:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html", category: "ccu", source: "ccu.edu" },
-      { date: "2026-10-16", title: "Parent and Family Weekend", time: "11:00 am - 9:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/family-weekend/index.html", category: "ccu", source: "ccu.edu" },
-      { date: "2026-10-16", title: "Fall Symphonic Band Concert", time: "7:00 pm - 8:30 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-symphonic-band-concert/", category: "ccu", source: "ccu.edu" },
-      { date: "2026-10-19", title: "Faith and Freedom Series: Joseph Loconte", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faith-freedom-loconte/index.html", category: "ccu", source: "ccu.edu" },
-      { date: "2026-10-21", title: "Fall Play: Antigone", time: "7:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/antigone/", category: "ccu", source: "ccu.edu" },
-      { date: "2026-10-30", title: "Fall Choral Concert", time: "7:00 pm - 9:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-choral-concert/", category: "ccu", source: "ccu.edu" },
+    const CCU_UNIFIED_FILTER_KEY = 'CCU Events Page (ccu.edu)';
 
-      // Blue: Weekly Classes
+    const defaultBaselineEvents = [
+      { date: "2026-10-01", title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-08", title: "Two-Day Preview", time: "8:30 am - 2:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-16", title: "Parent and Family Weekend", time: "11:00 am - 9:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/family-weekend/index.html", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-16", title: "Fall Symphonic Band Concert", time: "7:00 pm - 8:30 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-symphonic-band-concert/", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-19", title: "Faith and Freedom Series: Joseph Loconte", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faith-freedom-loconte/index.html", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-21", title: "Fall Play: Antigone", time: "7:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/antigone/", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-30", title: "Fall Choral Concert", time: "7:00 pm - 9:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-choral-concert/", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
       { date: "2026-10-05", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
       { date: "2026-10-07", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
       { date: "2026-10-09", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
       { date: "2026-10-06", title: "ENG-210: Academic Writing", time: "10:30 am - 11:45 am", location: "Leprino Hall 204", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
       { date: "2026-10-08", title: "ENG-210: Academic Writing", time: "10:30 am - 11:45 am", location: "Leprino Hall 204", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
-
-      // Red: Things Due / Projects
       { date: "2026-10-25", title: "ENG-210: Essay Draft Project Due", time: "11:59 pm", location: "Brightspace Drop", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" },
       { date: "2026-10-28", title: "BIB-102: Midterm Project Review", time: "11:59 pm", location: "Brightspace Portal", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" },
       { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" }
@@ -611,16 +390,18 @@
       populateSourceFilterDropdown();
     }
 
-    // Populate Universal Filter Dropdown for Web URLs & Files
     function populateSourceFilterDropdown() {
       const dropdown = document.getElementById('sourceFilterSelect');
       const events = loadMasterEvents();
       const sources = new Set();
 
       events.forEach(e => {
-        const src = e.source || (e.link && e.link !== '#' ? e.link : null);
-        if (src && src.trim() !== '') {
-          sources.add(src.trim());
+        const isCcuUrl = (e.link && e.link.toLowerCase().includes('ccu.edu')) || (e.source && e.source.toLowerCase().includes('ccu.edu')) || e.category === 'ccu';
+        if (isCcuUrl) {
+          sources.add(CCU_UNIFIED_FILTER_KEY);
+        } else {
+          const src = e.source || (e.link && e.link !== '#' ? e.link : null);
+          if (src && src.trim() !== '') sources.add(src.trim());
         }
       });
 
@@ -630,8 +411,12 @@
       sources.forEach(src => {
         const opt = document.createElement('option');
         opt.value = src;
-        const displayLabel = src.length > 40 ? src.substring(0, 38) + '...' : src;
-        opt.textContent = src.startsWith('File:') || src.endsWith('.pdf') || src.endsWith('.ics') || src.endsWith('.txt') ? `📄 ${displayLabel}` : `🔗 ${displayLabel}`;
+        if (src === CCU_UNIFIED_FILTER_KEY) {
+          opt.textContent = '🏛️ CCU Events Page (ccu.edu)';
+        } else {
+          const displayLabel = src.length > 38 ? src.substring(0, 36) + '...' : src;
+          opt.textContent = src.startsWith('File:') || src.endsWith('.pdf') || src.endsWith('.ics') || src.endsWith('.txt') ? `📄 ${displayLabel}` : `🔗 ${displayLabel}`;
+        }
         dropdown.appendChild(opt);
       });
 
@@ -648,7 +433,6 @@
       renderCalendar();
     }
 
-    // Scan File for Mentioned Dates & Extract Schedule
     function scanFileForDates(files) {
       if (!files || files.length === 0) return;
       const file = files[0];
@@ -657,17 +441,14 @@
       status.textContent = `Scanning file "${fileName}"...`;
 
       const reader = new FileReader();
-
       reader.onload = function(e) {
         const content = e.target.result;
         const masterList = loadMasterEvents();
         let addedCount = 0;
 
-        // Check if file is an .ICS Calendar
         if (fileName.endsWith('.ics') || content.includes('BEGIN:VEVENT')) {
           const lines = content.split(/\r\n|\n/);
           let currentEvent = null;
-
           lines.forEach(line => {
             if (line.startsWith('BEGIN:VEVENT')) {
               currentEvent = { category: 'classtime', source: `File: ${fileName}`, link: `File: ${fileName}` };
@@ -678,28 +459,21 @@
               }
               currentEvent = null;
             } else if (currentEvent) {
-              if (line.startsWith('SUMMARY:')) {
-                currentEvent.title = line.replace('SUMMARY:', '').trim();
-              } else if (line.startsWith('LOCATION:')) {
-                currentEvent.location = line.replace('LOCATION:', '').trim();
-              } else if (line.startsWith('DTSTART:')) {
+              if (line.startsWith('SUMMARY:')) currentEvent.title = line.replace('SUMMARY:', '').trim();
+              else if (line.startsWith('LOCATION:')) currentEvent.location = line.replace('LOCATION:', '').trim();
+              else if (line.startsWith('DTSTART:')) {
                 const dt = line.replace('DTSTART:', '').trim();
                 if (dt.length >= 8) {
-                  const year = dt.substring(0, 4);
-                  const month = dt.substring(4, 6);
-                  const day = dt.substring(6, 8);
-                  currentEvent.date = `${year}-${month}-${day}`;
+                  currentEvent.date = `${dt.substring(0, 4)}-${dt.substring(4, 6)}-${dt.substring(6, 8)}`;
                   currentEvent.time = dt.length >= 13 ? `${dt.substring(9, 11)}:${dt.substring(11, 13)}` : 'Class Session';
                 }
               }
             }
           });
         } else {
-          // Regular Document / Syllabus Text Parsing
           const dateRegex = /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}/gi;
           const matches = content.match(dateRegex);
           const foundDates = new Set();
-
           if (matches) {
             matches.forEach(rawDate => {
               const formattedDate = parseAnyDateString(rawDate);
@@ -722,21 +496,17 @@
 
         saveMasterEvents(masterList);
         status.textContent = `Extracted ${addedCount} date(s) from "${fileName}"! Linked as source.`;
-
-        // Auto-select file source in filter
         const fileTag = `File: ${fileName}`;
         document.getElementById('sourceFilterSelect').value = fileTag;
         selectedSourceFilter = fileTag;
         renderCalendar();
       };
-
       reader.readAsText(file);
     }
 
-    // Web Page URL Extractor
     async function extractEventsFromUrl() {
       const targetUrl = document.getElementById('urlScraperInput').value.trim();
-      if (!targetUrl) { alert('Please enter a valid webpage URL.'); return; }
+      if (!targetUrl) return alert('Please enter a valid webpage URL.');
 
       const btn = document.getElementById('scrapeBtn');
       const spinner = document.getElementById('scrapeSpinner');
@@ -754,13 +524,10 @@
 
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, 'text/html');
-
-        let pageTitle = doc.querySelector('title')?.innerText || 'Web Event';
-        pageTitle = pageTitle.split('|')[0].trim();
+        let pageTitle = (doc.querySelector('title')?.innerText || 'Web Event').split('|')[0].trim();
 
         const masterList = loadMasterEvents();
         let addedCount = 0;
-
         const dateRegex = /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}/gi;
         const textElements = doc.querySelectorAll('p, h1, h2, h3, h4, li, time');
         const foundDates = new Set();
@@ -780,7 +547,7 @@
                   time: "Web Event",
                   location: new URL(targetUrl).hostname,
                   link: targetUrl,
-                  source: targetUrl
+                  source: targetUrl.includes('ccu.edu') ? CCU_UNIFIED_FILTER_KEY : targetUrl
                 });
                 addedCount++;
               }
@@ -790,9 +557,9 @@
 
         saveMasterEvents(masterList);
         status.textContent = `Extracted ${addedCount} date(s) from webpage!`;
-
-        document.getElementById('sourceFilterSelect').value = targetUrl;
-        selectedSourceFilter = targetUrl;
+        const newSource = targetUrl.includes('ccu.edu') ? CCU_UNIFIED_FILTER_KEY : targetUrl;
+        document.getElementById('sourceFilterSelect').value = newSource;
+        selectedSourceFilter = newSource;
         renderCalendar();
       } catch (err) {
         status.textContent = 'Could not parse webpage automatically. Try pasting text below.';
@@ -806,16 +573,13 @@
       try {
         const d = new Date(str);
         if (isNaN(d.getTime())) return null;
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
-      } catch(e) { return null; }
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      } catch (e) { return null; }
     }
 
     function parsePastedSchedule() {
       const text = document.getElementById('pasteInput').value;
-      if (!text.trim()) { alert('Please paste schedule text.'); return; }
+      if (!text.trim()) return alert('Please paste schedule text.');
 
       const masterList = loadMasterEvents();
       const lines = text.split('\n');
@@ -862,39 +626,33 @@
           const fetchedData = await response.json();
           if (Array.isArray(fetchedData)) {
             const existingKeys = new Set(currentList.map(getEventKey));
-
             fetchedData.forEach(item => {
               const key = getEventKey(item);
               if (!existingKeys.has(key)) {
+                if (item.category === 'ccu' || (item.link && item.link.includes('ccu.edu'))) {
+                  item.source = CCU_UNIFIED_FILTER_KEY;
+                }
                 currentList.push(item);
                 existingKeys.add(key);
                 addedCount++;
               }
             });
-
             saveMasterEvents(currentList);
           }
         }
-      } catch (err) {
-        console.log('Keeping existing schedule items intact.');
-      }
+      } catch (err) {}
 
       await new Promise(resolve => setTimeout(resolve, 800));
-
       const now = new Date();
       statusEl.textContent = addedCount > 0 ? `Added ${addedCount} new item(s)! (${now.toLocaleTimeString()})` : `Fully up to date! (${now.toLocaleTimeString()})`;
-
       syncSpinner.style.display = 'none';
       syncBtnText.textContent = 'Sync Brightspace & CCU';
       syncBtn.disabled = false;
-
       renderCalendar();
     }
 
     function initTheme() {
-      const savedTheme = localStorage.getItem('theme') || 
-        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-      setTheme(savedTheme);
+      setTheme(localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
     }
 
     function setTheme(theme) {
@@ -905,8 +663,7 @@
     }
 
     function toggleTheme() {
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      setTheme(currentTheme === 'dark' ? 'light' : 'dark');
+      setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
     }
 
     function changeZoom(delta) {
@@ -920,10 +677,8 @@
     }
 
     function applyZoom() {
-      const container = document.getElementById('calendarZoomContainer');
-      const label = document.getElementById('zoomLevelText');
-      container.style.transform = `scale(${currentZoom / 100})`;
-      label.textContent = `${currentZoom}%`;
+      document.getElementById('calendarZoomContainer').style.transform = `scale(${currentZoom / 100})`;
+      document.getElementById('zoomLevelText').textContent = `${currentZoom}%`;
     }
 
     function navigateMonth(direction) {
@@ -936,14 +691,15 @@
       renderCalendar();
     }
 
-    // Check if an event matches the active source filter
     function eventMatchesFilter(e, filterTarget) {
       if (!filterTarget) return true;
       const target = filterTarget.toLowerCase().trim();
-      const linkMatch = e.link && e.link.toLowerCase().includes(target);
-      const sourceMatch = e.source && e.source.toLowerCase().includes(target);
-      const locMatch = e.location && e.location.toLowerCase().includes(target);
-      return linkMatch || sourceMatch || locMatch;
+
+      if (target.includes('ccu events page') || target === 'ccu.edu') {
+        return (e.category === 'ccu') || (e.link && e.link.toLowerCase().includes('ccu.edu')) || (e.source && e.source.toLowerCase().includes('ccu.edu'));
+      }
+
+      return (e.link && e.link.toLowerCase().includes(target)) || (e.source && e.source.toLowerCase().includes(target)) || (e.location && e.location.toLowerCase().includes(target));
     }
 
     function renderCalendar() {
@@ -956,21 +712,17 @@
       list.innerHTML = '';
 
       const activeEvents = loadMasterEvents();
-
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
 
-      const monthNames = ["January", "February", "March", "April", "May", "June", 
-                          "July", "August", "September", "October", "November", "December"];
+      const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
       title.textContent = `${monthNames[month]} ${year}`;
       sidebarTitle.textContent = `${monthNames[month]} Schedule`;
 
       const firstDay = new Date(year, month, 1).getDay();
       const daysInMonth = new Date(year, month + 1, 0).getDate();
-
       const todayObj = new Date();
       const isCurrentMonthReal = todayObj.getFullYear() === year && todayObj.getMonth() === month;
-
       const useFilter = isFilterActive && selectedSourceFilter.trim() !== '';
 
       for (let i = 0; i < firstDay; i++) {
@@ -987,7 +739,6 @@
 
         const isToday = isCurrentMonthReal && todayObj.getDate() === day;
         const dayEvents = activeEvents.filter(e => e.date === dateStr);
-
         const hasMatchingSourceEvent = dayEvents.some(e => eventMatchesFilter(e, selectedSourceFilter));
         const isDimmedDay = useFilter && !hasMatchingSourceEvent;
 
@@ -1004,10 +755,8 @@
         dayEvents.forEach(e => {
           const pill = document.createElement('a');
           const cat = e.category || 'ccu';
-          
           const isPillMatch = !useFilter || eventMatchesFilter(e, selectedSourceFilter);
           pill.className = `event-pill ${cat} ${!isPillMatch ? 'dimmed-pill' : ''}`;
-
           const icon = cat === 'project' ? '🟥 ' : cat === 'classtime' || cat === 'brightspace' || cat === 'file' ? '🟦 ' : '🟨 ';
           pill.textContent = icon + e.title;
           pill.href = e.link || '#';
@@ -1021,9 +770,7 @@
       }
 
       const currentMonthPrefix = `${year}-${(month + 1) < 10 ? '0' + (month + 1) : month + 1}`;
-      const monthEvents = activeEvents
-        .filter(e => e.date && e.date.startsWith(currentMonthPrefix))
-        .sort((a, b) => a.date.localeCompare(b.date));
+      const monthEvents = activeEvents.filter(e => e.date && e.date.startsWith(currentMonthPrefix)).sort((a, b) => a.date.localeCompare(b.date));
 
       if (monthEvents.length === 0) {
         list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">No events scheduled for this month.</div>';
@@ -1031,14 +778,12 @@
         monthEvents.forEach(e => {
           const item = document.createElement('div');
           const cat = e.category || 'ccu';
-          
           const isItemMatch = !useFilter || eventMatchesFilter(e, selectedSourceFilter);
           item.className = `event-item ${cat} ${!isItemMatch ? 'dimmed-item' : ''}`;
-
           const eventDateObj = new Date(e.date + 'T00:00:00');
           const dateFormatted = eventDateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
           const label = cat === 'project' ? 'DUE / PROJECT' : cat === 'classtime' || cat === 'brightspace' || cat === 'file' ? 'CLASS / FILE' : 'SCHOOL EVENT';
-          
+
           item.innerHTML = `
             <a class="event-title" href="${e.link || '#'}" target="_blank">
               <span class="badge ${cat}">${label}</span> ${e.title}
@@ -1058,28 +803,20 @@
       const location = document.getElementById('classLocation').value || 'CCU Campus';
       const termStart = new Date(document.getElementById('termStart').value + 'T00:00:00');
       const termEnd = new Date(document.getElementById('termEnd').value + 'T00:00:00');
-
       const selectedDays = Array.from(document.querySelectorAll('input[name="days"]:checked')).map(cb => parseInt(cb.value));
-      if (selectedDays.length === 0) { alert('Please select at least one meeting day.'); return; }
+
+      if (selectedDays.length === 0) return alert('Please select at least one meeting day.');
 
       const masterList = loadMasterEvents();
       let added = 0;
-
       for (let d = new Date(termStart); d <= termEnd; d.setDate(d.getDate() + 1)) {
         if (selectedDays.includes(d.getDay())) {
           const y = d.getFullYear();
           const m = String(d.getMonth() + 1).padStart(2, '0');
           const dayNum = String(d.getDate()).padStart(2, '0');
-          const dateStr = `${y}-${m}-${dayNum}`;
-
           masterList.push({
-            date: dateStr,
-            title: title,
-            category: 'classtime',
-            time: time,
-            location: location,
-            link: 'https://selfservice.ccu.edu/Student/Planning/DegreePlans',
-            source: 'Self-Service'
+            date: `${y}-${m}-${dayNum}`, title: title, category: 'classtime', time: time, location: location,
+            link: 'https://selfservice.ccu.edu/Student/Planning/DegreePlans', source: 'Self-Service'
           });
           added++;
         }
