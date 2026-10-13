@@ -22,6 +22,7 @@
       --pill-ccu: #0072ce;
       --pill-brightspace: #2e7d32;
       --pill-project: #d32f2f;
+      --pill-class: #6a1b9a;
       --pill-text: #ffffff;
       --shadow: rgba(0, 0, 0, 0.08);
       --cell-min-height: 115px;
@@ -44,6 +45,7 @@
       --pill-ccu: #0288d1;
       --pill-brightspace: #388e3c;
       --pill-project: #e53935;
+      --pill-class: #ab47bc;
       --pill-text: #ffffff;
       --shadow: rgba(0, 0, 0, 0.4);
     }
@@ -174,7 +176,7 @@
       min-width: 680px;
     }
 
-    /* Fixed 7-column layout with minmax(0, 1fr) prevents column distortion */
+    /* Fixed minmax columns prevent box shrinkage when text is typed */
     .weekdays {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
@@ -193,7 +195,6 @@
       margin-top: 10px;
     }
 
-    /* Strict cell width prevents text overflow from shrinking grid boxes */
     .day {
       min-width: 0;
       min-height: var(--cell-min-height);
@@ -240,7 +241,6 @@
       width: 100%;
     }
 
-    /* Text truncation logic prevents pills from resizing grid boxes */
     .event-pill {
       color: var(--pill-text);
       padding: 4px 7px;
@@ -259,6 +259,7 @@
     .event-pill.ccu { background: var(--pill-ccu); }
     .event-pill.brightspace { background: var(--pill-brightspace); }
     .event-pill.project { background: var(--pill-project); }
+    .event-pill.classtime { background: var(--pill-class); }
     .event-pill:hover { opacity: 0.9; text-decoration: underline; }
 
     .sidebar h2 { font-size: 1.15rem; color: var(--primary); margin-bottom: 12px; }
@@ -276,6 +277,7 @@
 
     .event-item.brightspace { border-left-color: var(--pill-brightspace); }
     .event-item.project { border-left-color: var(--pill-project); }
+    .event-item.classtime { border-left-color: var(--pill-class); }
 
     .event-title { font-weight: 700; color: var(--primary); text-decoration: none; font-size: 0.92rem; display: block; margin-bottom: 4px; word-break: break-word; }
     .event-title:hover { text-decoration: underline; }
@@ -292,6 +294,7 @@
     .badge.ccu { background: var(--pill-ccu); }
     .badge.brightspace { background: var(--pill-brightspace); }
     .badge.project { background: var(--pill-project); }
+    .badge.classtime { background: var(--pill-class); }
 
     form { display: flex; flex-direction: column; gap: 10px; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
@@ -360,18 +363,19 @@
       </div>
 
       <div class="card" style="margin-bottom: 20px;">
-        <h2>Add Custom Event / Project</h2>
+        <h2>Add Event or Class Time</h2>
         <form id="eventForm">
           <div class="form-group">
-            <label for="title">Title</label>
-            <input type="text" id="title" placeholder="e.g. BIB-102 Project Presentation" required>
+            <label for="title">Title / Course Code</label>
+            <input type="text" id="title" placeholder="e.g. BIB-102 Christian Doctrine" required>
           </div>
           <div class="form-group">
             <label for="category">Category</label>
             <select id="category">
-              <option value="brightspace">Brightspace Class Time</option>
-              <option value="project">Upcoming Project / Due Date</option>
-              <option value="ccu">CCU Campus Event</option>
+              <option value="classtime">📚 Regular Class Time</option>
+              <option value="project">📝 Project / Assignment Due</option>
+              <option value="brightspace">🎓 Brightspace Course Event</option>
+              <option value="ccu">🏛️ CCU Campus Event</option>
             </select>
           </div>
           <div class="form-group">
@@ -380,11 +384,11 @@
           </div>
           <div class="form-group">
             <label for="time">Time</label>
-            <input type="text" id="time" placeholder="e.g. 11:59 pm" required>
+            <input type="text" id="time" placeholder="e.g. 9:00 am - 10:15 am" required>
           </div>
           <div class="form-group">
-            <label for="location">Location / Course</label>
-            <input type="text" id="location" placeholder="e.g. Online / Armstrong Hall">
+            <label for="location">Location / Classroom</label>
+            <input type="text" id="location" placeholder="e.g. Anschutz Hall 102">
           </div>
           <div class="form-group">
             <label for="link">URL Link</label>
@@ -395,7 +399,7 @@
       </div>
 
       <div class="card">
-        <h2 id="sidebarListTitle">Events & Deadlines</h2>
+        <h2 id="sidebarListTitle">Events & Class Times</h2>
         <div class="event-list" id="eventList"></div>
       </div>
     </div>
@@ -405,8 +409,9 @@
     let currentDate = new Date(2026, 9, 1);
     let currentZoom = 100;
 
-    // Built-in CCU & Brightspace baseline schedule
-    const defaultEvents = [
+    // Default Baseline Schedule including CCU Campus Events & Class Times
+    const defaultBaselineEvents = [
+      // CCU Events (October 2026)
       { date: "2026-10-01", title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html", category: "ccu" },
       { date: "2026-10-08", title: "Two-Day Preview", time: "8:30 am - 2:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html", category: "ccu" },
       { date: "2026-10-16", title: "Parent and Family Weekend", time: "11:00 am - 9:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/family-weekend/index.html", category: "ccu" },
@@ -414,50 +419,105 @@
       { date: "2026-10-19", title: "Faith and Freedom Series: Joseph Loconte", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faith-freedom-loconte/index.html", category: "ccu" },
       { date: "2026-10-21", title: "Fall Play: Antigone", time: "7:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/antigone/", category: "ccu" },
       { date: "2026-10-30", title: "Fall Choral Concert", time: "7:00 pm - 9:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-choral-concert/", category: "ccu" },
-      { date: "2026-10-14", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://mycourses.ccu.edu/d2l/le/calendar/6606", category: "brightspace" },
-      { date: "2026-10-25", title: "ENG-210: Essay Draft Project Due", time: "11:59 pm", location: "Brightspace Assignment Drop", link: "https://mycourses.ccu.edu/d2l/le/calendar/6606", category: "project" },
-      { date: "2026-10-28", title: "BIB-102: Midterm Project Review", time: "11:59 pm", location: "Brightspace Quiz Portal", link: "https://mycourses.ccu.edu/d2l/le/calendar/6606", category: "project" },
-      { date: "2026-11-06", title: "An Evening of Jazz", time: "7:00 pm - 8:30 pm", location: "McDonald Performance Hall", link: "https://www.ccu.edu/events/2026/11/an-evening-of-jazz/", category: "ccu" },
-      { date: "2026-11-10", title: "Chamber Ensembles Concert", time: "7:00 pm - 8:30 pm", location: "McDonald Performance Hall", link: "https://www.ccu.edu/events/2026/11/chamber-ensembles-concert/", category: "ccu" },
-      { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu/d2l/le/calendar/6606", category: "project" },
-      { date: "2026-11-16", title: "Issue Monday: Neither Sovereign nor Slave", time: "7:00 pm - 8:30 pm", location: "Donnithorne Great Hall", link: "https://www.ccu.edu/events/2026/11/issue-monday/", category: "ccu" },
-      { date: "2026-11-24", title: "BIB-102: Term Research Paper Project", time: "11:59 pm", location: "Brightspace Submissions", link: "https://mycourses.ccu.edu/d2l/le/calendar/6606", category: "project" },
-      { date: "2026-12-04", title: "CCU Christmas Celebration", time: "2:00 pm & 7:00 pm", location: "McDonald Performance Hall", link: "https://www.ccu.edu/events/2026/12/christmas-celebration/", category: "ccu" },
-      { date: "2026-12-05", title: "CCU Christmas Celebration", time: "2:00 pm & 7:00 pm", location: "McDonald Performance Hall", link: "https://www.ccu.edu/events/2026/12/christmas-celebration/", category: "ccu" },
-      { date: "2026-12-10", title: "Fall Semester Final Capstone Project", time: "11:59 pm", location: "Brightspace Course Portal", link: "https://mycourses.ccu.edu/d2l/le/calendar/6606", category: "project" }
+
+      // Class Times & Weekly Course Schedule (Fall 2026)
+      { date: "2026-10-05", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://mycourses.ccu.edu", category: "classtime" },
+      { date: "2026-10-07", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://mycourses.ccu.edu", category: "classtime" },
+      { date: "2026-10-09", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://mycourses.ccu.edu", category: "classtime" },
+      { date: "2026-10-06", title: "ENG-210: Academic Writing", time: "10:30 am - 11:45 am", location: "Leprino Hall 204", link: "https://mycourses.ccu.edu", category: "classtime" },
+      { date: "2026-10-08", title: "ENG-210: Academic Writing", time: "10:30 am - 11:45 am", location: "Leprino Hall 204", link: "https://mycourses.ccu.edu", category: "classtime" },
+      { date: "2026-10-12", title: "MGT-301: Principles of Management", time: "1:00 pm - 2:15 pm", location: "Anschutz Hall 210", link: "https://mycourses.ccu.edu", category: "classtime" },
+      { date: "2026-10-14", title: "MGT-301: Principles of Management", time: "1:00 pm - 2:15 pm", location: "Anschutz Hall 210", link: "https://mycourses.ccu.edu", category: "classtime" },
+
+      // Projects & Assignment Deadlines
+      { date: "2026-10-25", title: "ENG-210: Essay Draft Project Due", time: "11:59 pm", location: "Brightspace Assignment Drop", link: "https://mycourses.ccu.edu", category: "project" },
+      { date: "2026-10-28", title: "BIB-102: Midterm Project Review", time: "11:59 pm", location: "Brightspace Quiz Portal", link: "https://mycourses.ccu.edu", category: "project" },
+      { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu", category: "project" },
+      { date: "2026-11-24", title: "BIB-102: Term Research Paper Project", time: "11:59 pm", location: "Brightspace Submissions", link: "https://mycourses.ccu.edu", category: "project" },
+      { date: "2026-12-10", title: "Fall Semester Final Capstone Project", time: "11:59 pm", location: "Brightspace Course Portal", link: "https://mycourses.ccu.edu", category: "project" }
     ];
 
-    let liveFetchedEvents = [];
+    // Key generator for deduplication
+    function getEventKey(item) {
+      return `${item.date || ''}_${item.title || ''}_${item.time || ''}`.toLowerCase().trim();
+    }
 
-    // Retrieve user-added custom events separately so Sync NEVER deletes them
-    function getCustomEvents() {
+    // Load master events list from localStorage or baseline
+    function loadMasterEvents() {
+      const stored = localStorage.getItem('ccu_master_calendar');
+      if (!stored) {
+        localStorage.setItem('ccu_master_calendar', JSON.stringify(defaultBaselineEvents));
+        return [...defaultBaselineEvents];
+      }
       try {
-        const stored = localStorage.getItem('ccu_custom_events');
-        return stored ? JSON.parse(stored) : [];
+        const parsed = JSON.parse(stored);
+        const mergedMap = new Map();
+        defaultBaselineEvents.forEach(e => mergedMap.set(getEventKey(e), e));
+        parsed.forEach(e => mergedMap.set(getEventKey(e), e));
+        const merged = Array.from(mergedMap.values());
+        localStorage.setItem('ccu_master_calendar', JSON.stringify(merged));
+        return merged;
       } catch (e) {
-        return [];
+        return [...defaultBaselineEvents];
       }
     }
 
-    function saveCustomEvent(newEvent) {
-      const customEvents = getCustomEvents();
-      customEvents.push(newEvent);
-      localStorage.setItem('ccu_custom_events', JSON.stringify(customEvents));
+    function saveMasterEvents(list) {
+      localStorage.setItem('ccu_master_calendar', JSON.stringify(list));
     }
 
-    // Combine default/synced feeds with user custom entries
-    function getAllEvents() {
-      const baseList = liveFetchedEvents.length > 0 ? liveFetchedEvents : defaultEvents;
-      const customList = getCustomEvents();
-      
-      // Deduplicate by title & date
-      const combined = [...baseList];
-      customList.forEach(custom => {
-        if (!combined.some(e => e.title === custom.title && e.date === custom.date)) {
-          combined.push(custom);
+    // Additive Smart Sync Functionality
+    async function fetchLiveEvents() {
+      const syncBtn = document.getElementById('syncBtn');
+      const syncSpinner = document.getElementById('syncSpinner');
+      const syncBtnText = document.getElementById('syncBtnText');
+      const statusEl = document.getElementById('lastUpdated');
+
+      syncBtn.disabled = true;
+      syncSpinner.style.display = 'inline-block';
+      syncBtnText.textContent = 'Checking for New Events...';
+      statusEl.textContent = 'Scanning Brightspace & CCU feeds for new entries...';
+
+      let currentList = loadMasterEvents();
+      let addedCount = 0;
+
+      try {
+        const response = await fetch('./events.json?cachebuster=' + new Date().getTime());
+        if (response.ok) {
+          const fetchedData = await response.json();
+          if (Array.isArray(fetchedData)) {
+            const existingKeys = new Set(currentList.map(getEventKey));
+
+            fetchedData.forEach(item => {
+              const key = getEventKey(item);
+              if (!existingKeys.has(key)) {
+                currentList.push(item);
+                existingKeys.add(key);
+                addedCount++;
+              }
+            });
+
+            saveMasterEvents(currentList);
+          }
         }
-      });
-      return combined;
+      } catch (err) {
+        console.log('No new external file found. Keeping all existing schedule items intact.');
+      }
+
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const now = new Date();
+      if (addedCount > 0) {
+        statusEl.textContent = `Sync complete: Added ${addedCount} new item(s)! (${now.toLocaleTimeString()})`;
+      } else {
+        statusEl.textContent = `Sync complete: All class times & events are up to date! (${now.toLocaleTimeString()})`;
+      }
+
+      syncSpinner.style.display = 'none';
+      syncBtnText.textContent = 'Sync Brightspace & CCU';
+      syncBtn.disabled = false;
+
+      renderCalendar();
     }
 
     // Theme Management
@@ -510,46 +570,7 @@
       renderCalendar();
     }
 
-    // Safe Live Event Sync: Preserves all user custom entries
-    async function fetchLiveEvents() {
-      const syncBtn = document.getElementById('syncBtn');
-      const syncSpinner = document.getElementById('syncSpinner');
-      const syncBtnText = document.getElementById('syncBtnText');
-      const statusEl = document.getElementById('lastUpdated');
-
-      syncBtn.disabled = true;
-      syncSpinner.style.display = 'inline-block';
-      syncBtnText.textContent = 'Syncing...';
-      statusEl.textContent = 'Searching Brightspace (mycourses.ccu.edu) and ccu.edu/events...';
-
-      try {
-        const response = await fetch('./events.json?cachebuster=' + new Date().getTime());
-        if (response.ok) {
-          const liveData = await response.json();
-          if (Array.isArray(liveData) && liveData.length > 0) {
-            liveFetchedEvents = liveData;
-          }
-        }
-      } catch (err) {
-        console.log('Using pre-loaded default events feed');
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      const now = new Date();
-      const allEvents = getAllEvents();
-      const customCount = getCustomEvents().length;
-      
-      statusEl.textContent = `Synced successfully: ${now.toLocaleTimeString()} (${allEvents.length} events loaded, ${customCount} custom events preserved)`;
-
-      syncSpinner.style.display = 'none';
-      syncBtnText.textContent = 'Sync Brightspace & CCU';
-      syncBtn.disabled = false;
-
-      renderCalendar();
-    }
-
-    // Render Calendar View
+    // Render Calendar Grid
     function renderCalendar() {
       const grid = document.getElementById('calendarDays');
       const list = document.getElementById('eventList');
@@ -559,7 +580,7 @@
       grid.innerHTML = '';
       list.innerHTML = '';
 
-      const activeEvents = getAllEvents();
+      const activeEvents = loadMasterEvents();
 
       const year = currentDate.getFullYear();
       const month = currentDate.getMonth();
@@ -604,7 +625,8 @@
           const pill = document.createElement('a');
           const cat = e.category || 'ccu';
           pill.className = `event-pill ${cat}`;
-          pill.textContent = (cat === 'project' ? '📝 ' : cat === 'brightspace' ? '🎓 ' : '🏛️ ') + e.title;
+          const icon = cat === 'project' ? '📝 ' : cat === 'brightspace' ? '🎓 ' : cat === 'classtime' ? '📚 ' : '🏛️ ';
+          pill.textContent = icon + e.title;
           pill.href = e.link || '#';
           pill.target = '_blank';
           pill.title = `${e.title} (${e.time})`;
@@ -621,7 +643,7 @@
         .sort((a, b) => a.date.localeCompare(b.date));
 
       if (monthEvents.length === 0) {
-        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">No events scheduled for this month.</div>';
+        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">No class times or events found for this month.</div>';
       } else {
         monthEvents.forEach(e => {
           const item = document.createElement('div');
@@ -642,7 +664,7 @@
       }
     }
 
-    // Custom Event Handler
+    // Submit New Class Time or Event
     document.getElementById('eventForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const newEvent = {
@@ -650,11 +672,13 @@
         title: document.getElementById('title').value,
         category: document.getElementById('category').value,
         time: document.getElementById('time').value,
-        location: document.getElementById('location').value || 'CCU / Online',
+        location: document.getElementById('location').value || 'CCU Campus / Online',
         link: document.getElementById('link').value || 'https://mycourses.ccu.edu'
       };
 
-      saveCustomEvent(newEvent);
+      const masterList = loadMasterEvents();
+      masterList.push(newEvent);
+      saveMasterEvents(masterList);
 
       if (newEvent.date) {
         const [y, m] = newEvent.date.split('-');
