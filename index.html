@@ -20,12 +20,12 @@
       --today-border: #0072ce;
       --input-bg: #ffffff;
 
-      /* Color Scheme Customization */
-      --pill-ccu: #eab308;         /* Yellow for School Events */
+      /* High-contrast category colors */
+      --pill-ccu: #eab308;         /* Yellow: School Events */
       --pill-ccu-text: #000000;
-      --pill-project: #dc2626;     /* Red for Things Due / Projects */
+      --pill-project: #dc2626;     /* Red: Things Due / Projects */
       --pill-project-text: #ffffff;
-      --pill-class: #0072ce;       /* Blue for Weekly Classes */
+      --pill-class: #0072ce;       /* Blue: Weekly Classes */
       --pill-class-text: #ffffff;
 
       --shadow: rgba(0, 0, 0, 0.08);
@@ -47,7 +47,6 @@
       --today-border: #64b5f6;
       --input-bg: #2a2a2a;
 
-      /* Dark Mode Color Scheme */
       --pill-ccu: #facc15;         /* Vibrant Yellow */
       --pill-ccu-text: #000000;
       --pill-project: #ef4444;     /* Vibrant Red */
@@ -137,6 +136,23 @@
 
     .zoom-label { font-size: 0.8rem; font-weight: bold; color: var(--text-muted); min-width: 45px; text-align: center; }
 
+    /* Source Filter Control Bar (Handles both Files and Web URLs) */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    .filter-bar-group { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .filter-bar label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
+    .toggle-switch { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+
     .container {
       display: grid;
       grid-template-columns: 1fr 360px;
@@ -212,13 +228,23 @@
       font-size: 0.85rem;
       display: flex;
       flex-direction: column;
-      transition: background 0.2s ease;
+      transition: all 0.25s ease;
       overflow: hidden;
     }
 
     .day:hover { background: var(--day-hover); }
     .day.empty { background: transparent; border: none; }
     .day.today { background: var(--today-bg); border: 2px solid var(--today-border); }
+
+    /* Dimmed State for non-matching sources */
+    .day.dimmed-day {
+      opacity: 0.25;
+      filter: grayscale(90%);
+      background: rgba(0, 0, 0, 0.04);
+    }
+    [data-theme="dark"] .day.dimmed-day {
+      background: rgba(255, 255, 255, 0.03);
+    }
 
     .day-number {
       font-weight: 700;
@@ -260,12 +286,18 @@
       display: block;
       width: 100%;
       box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+      transition: all 0.25s ease;
     }
 
     .event-pill.ccu { background: var(--pill-ccu); color: var(--pill-ccu-text); }
     .event-pill.project { background: var(--pill-project); color: var(--pill-project-text); }
-    .event-pill.classtime, .event-pill.brightspace { background: var(--pill-class); color: var(--pill-class-text); }
+    .event-pill.classtime, .event-pill.brightspace, .event-pill.file { background: var(--pill-class); color: var(--pill-class-text); }
     .event-pill:hover { opacity: 0.9; text-decoration: underline; }
+
+    .event-pill.dimmed-pill {
+      opacity: 0.2;
+      filter: grayscale(100%);
+    }
 
     .sidebar h2 { font-size: 1.15rem; color: var(--primary); margin-bottom: 12px; }
     .event-list { max-height: 400px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
@@ -278,11 +310,17 @@
       border: 1px solid var(--border);
       border-left-width: 5px;
       word-break: break-word;
+      transition: all 0.25s ease;
+    }
+
+    .event-item.dimmed-item {
+      opacity: 0.3;
+      filter: grayscale(90%);
     }
 
     .event-item.ccu { border-left-color: var(--pill-ccu); }
     .event-item.project { border-left-color: var(--pill-project); }
-    .event-item.classtime, .event-item.brightspace { border-left-color: var(--pill-class); }
+    .event-item.classtime, .event-item.brightspace, .event-item.file { border-left-color: var(--pill-class); }
 
     .event-title { font-weight: 700; color: var(--primary); text-decoration: none; font-size: 0.92rem; display: block; margin-bottom: 4px; word-break: break-word; }
     .event-title:hover { text-decoration: underline; }
@@ -297,13 +335,41 @@
     }
     .badge.ccu { background: var(--pill-ccu); color: var(--pill-ccu-text); }
     .badge.project { background: var(--pill-project); color: var(--pill-project-text); }
-    .badge.classtime, .badge.brightspace { background: var(--pill-class); color: var(--pill-class-text); }
+    .badge.classtime, .badge.brightspace, .badge.file { background: var(--pill-class); color: var(--pill-class-text); }
+
+    /* Drop Zone & Input Styling */
+    .file-drop-zone {
+      border: 2px dashed var(--accent);
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      background: var(--day-bg);
+      cursor: pointer;
+      font-size: 0.85rem;
+      margin-top: 6px;
+      transition: background 0.2s;
+    }
+    .file-drop-zone:hover { background: var(--day-hover); }
+
+    textarea {
+      width: 100%;
+      height: 70px;
+      padding: 8px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 0.82rem;
+      resize: vertical;
+    }
 
     form { display: flex; flex-direction: column; gap: 10px; }
     .form-group { display: flex; flex-direction: column; gap: 4px; }
     .form-group label { font-size: 0.8rem; font-weight: 600; color: var(--text-muted); }
+    .checkbox-group { display: flex; gap: 8px; flex-wrap: wrap; font-size: 0.82rem; margin-top: 2px; }
+    .checkbox-group label { font-weight: normal; color: var(--text); cursor: pointer; }
     input, select, button { padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.88rem; }
-    input:focus, select:focus { outline: 2px solid var(--accent); }
+    input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); }
     button.submit-btn { background: var(--primary); color: #ffffff; border: none; font-weight: bold; cursor: pointer; margin-top: 5px; }
   </style>
 </head>
@@ -311,7 +377,7 @@
 
   <div class="header">
     <h1>CCU & Brightspace Academic Calendar</h1>
-    <p>Yellow = School Events | Red = Things Due | Blue = Weekly Classes</p>
+    <p>🟨 School Events &nbsp;|&nbsp; 🟥 Things Due / Projects &nbsp;|&nbsp; 🟦 Weekly Classes & Files</p>
   </div>
 
   <div class="status-bar">
@@ -334,6 +400,20 @@
 
   <div class="container">
     <div class="card">
+      <!-- Universal Source Filter Controls (Files & Websites) -->
+      <div class="filter-bar">
+        <div class="filter-bar-group">
+          <label for="sourceFilterSelect">🔎 Source Filter (File or Website):</label>
+          <select id="sourceFilterSelect" onchange="updateSourceFilter()" style="max-width: 300px;">
+            <option value="">-- All Sources --</option>
+          </select>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="filterToggle" onchange="toggleFilterState(this.checked)">
+          Gray out non-matching source dates
+        </label>
+      </div>
+
       <div class="calendar-header">
         <div class="month-title" id="monthYearTitle">Month Year</div>
         <div class="month-nav">
@@ -354,30 +434,95 @@
     </div>
 
     <div class="sidebar">
+      <!-- File Date Extractor / Scanner -->
       <div class="card" style="margin-bottom: 20px;">
-        <h2>Brightspace Calendar Link</h2>
+        <h2>Scan File for Dates & Schedule</h2>
         <div class="form-group">
-          <label for="brightspaceFeed">iCal / Feed URL (mycourses.ccu.edu)</label>
-          <input type="url" id="brightspaceFeed" value="https://mycourses.ccu.edu/d2l/le/calendar/6606" placeholder="Paste Brightspace iCal URL">
+          <label>Upload Document / Syllabus / .ICS / File</label>
+          <div class="file-drop-zone" onclick="document.getElementById('fileScannerInput').click()">
+            📄 Click or Drag & Drop <strong>File</strong> Here
+            <input type="file" id="fileScannerInput" accept=".txt,.ics,.pdf,.csv,.json,.html" style="display: none;" onchange="scanFileForDates(this.files)">
+          </div>
         </div>
-        <button class="btn" style="width: 100%; margin-top: 8px;" onclick="fetchLiveEvents()">
-          Import Feed
-        </button>
+        <div id="fileScanStatus" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;"></div>
       </div>
 
+      <!-- Web Page URL Date Scraper -->
       <div class="card" style="margin-bottom: 20px;">
-        <h2>Add Event / Class</h2>
+        <h2>Extract Dates from Website Link</h2>
+        <div class="form-group">
+          <label for="urlScraperInput">Webpage URL</label>
+          <input type="url" id="urlScraperInput" placeholder="https://www.ccu.edu/events/..." value="https://www.ccu.edu/events/">
+        </div>
+        <button class="btn" id="scrapeBtn" style="width: 100%; margin-top: 6px;" onclick="extractEventsFromUrl()">
+          <span class="spinner" id="scrapeSpinner"></span>
+          Scan & Add Webpage Dates
+        </button>
+        <div id="scraperStatus" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;"></div>
+      </div>
+
+      <!-- Copy-Paste Import Area -->
+      <div class="card" style="margin-bottom: 20px;">
+        <h2>Paste Self-Service Schedule</h2>
+        <div class="form-group">
+          <label for="pasteInput">Paste Self-Service Text</label>
+          <textarea id="pasteInput" placeholder="Paste copied text from Self-Service Degree Plan..."></textarea>
+          <button class="btn" style="width: 100%; margin-top: 6px;" onclick="parsePastedSchedule()">Parse & Add Schedule</button>
+        </div>
+      </div>
+
+      <!-- Recurring Class Schedule Generator -->
+      <div class="card" style="margin-bottom: 20px;">
+        <h2>Add Self-Service Class Schedule</h2>
+        <form id="classScheduleForm">
+          <div class="form-group">
+            <label for="classTitle">Course Title & Code</label>
+            <input type="text" id="classTitle" placeholder="e.g. BIB-102 Christian Doctrine" required>
+          </div>
+          <div class="form-group">
+            <label>Meeting Days</label>
+            <div class="checkbox-group">
+              <label><input type="checkbox" name="days" value="1"> Mon</label>
+              <label><input type="checkbox" name="days" value="2"> Tue</label>
+              <label><input type="checkbox" name="days" value="3"> Wed</label>
+              <label><input type="checkbox" name="days" value="4"> Thu</label>
+              <label><input type="checkbox" name="days" value="5"> Fri</label>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="classTime">Time</label>
+            <input type="text" id="classTime" placeholder="e.g. 9:00 am - 10:15 am" required>
+          </div>
+          <div class="form-group">
+            <label for="classLocation">Building & Room Number</label>
+            <input type="text" id="classLocation" placeholder="e.g. Anschutz Hall 102">
+          </div>
+          <div class="form-group">
+            <label for="termStart">Term Start Date</label>
+            <input type="date" id="termStart" value="2026-08-24" required>
+          </div>
+          <div class="form-group">
+            <label for="termEnd">Term End Date</label>
+            <input type="date" id="termEnd" value="2026-12-15" required>
+          </div>
+          <button type="submit" class="submit-btn" style="background: var(--accent);">Generate Full Term Classes (Blue)</button>
+        </form>
+      </div>
+
+      <!-- Single Event Form -->
+      <div class="card" style="margin-bottom: 20px;">
+        <h2>Add Single Event / Assignment</h2>
         <form id="eventForm">
           <div class="form-group">
-            <label for="title">Title / Course Code</label>
-            <input type="text" id="title" placeholder="e.g. BIB-102 Christian Doctrine" required>
+            <label for="title">Title</label>
+            <input type="text" id="title" placeholder="e.g. History Exam 1" required>
           </div>
           <div class="form-group">
             <label for="category">Category & Color</label>
             <select id="category">
-              <option value="ccu">🟨 School Event (Yellow)</option>
               <option value="project">🟥 Thing Due / Assignment (Red)</option>
-              <option value="classtime">🟦 Weekly Class Time (Blue)</option>
+              <option value="ccu">🟨 School Event (Yellow)</option>
+              <option value="classtime">🟦 Weekly Class Session (Blue)</option>
             </select>
           </div>
           <div class="form-group">
@@ -386,17 +531,17 @@
           </div>
           <div class="form-group">
             <label for="time">Time</label>
-            <input type="text" id="time" placeholder="e.g. 9:00 am - 10:15 am" required>
+            <input type="text" id="time" placeholder="e.g. 11:59 pm" required>
           </div>
           <div class="form-group">
-            <label for="location">Location / Classroom</label>
-            <input type="text" id="location" placeholder="e.g. Anschutz Hall 102">
+            <label for="location">Location / Source</label>
+            <input type="text" id="location" placeholder="e.g. Brightspace / Room 204">
           </div>
           <div class="form-group">
-            <label for="link">URL Link</label>
-            <input type="url" id="link" placeholder="https://mycourses.ccu.edu/...">
+            <label for="link">Source URL or File Tag (Optional)</label>
+            <input type="text" id="link" placeholder="https://... or File: Syllabus.pdf">
           </div>
-          <button type="submit" class="submit-btn">Add to Schedule</button>
+          <button type="submit" class="submit-btn">Add Event</button>
         </form>
       </div>
 
@@ -410,33 +555,32 @@
   <script>
     let currentDate = new Date(2026, 9, 1);
     let currentZoom = 100;
+    
+    // Filtering State
+    let isFilterActive = false;
+    let selectedSourceFilter = '';
 
-    // Baseline Schedule with Color Categories
     const defaultBaselineEvents = [
       // Yellow: CCU School Events
-      { date: "2026-10-01", title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html", category: "ccu" },
-      { date: "2026-10-08", title: "Two-Day Preview", time: "8:30 am - 2:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html", category: "ccu" },
-      { date: "2026-10-16", title: "Parent and Family Weekend", time: "11:00 am - 9:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/family-weekend/index.html", category: "ccu" },
-      { date: "2026-10-16", title: "Fall Symphonic Band Concert", time: "7:00 pm - 8:30 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-symphonic-band-concert/", category: "ccu" },
-      { date: "2026-10-19", title: "Faith and Freedom Series: Joseph Loconte", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faith-freedom-loconte/index.html", category: "ccu" },
-      { date: "2026-10-21", title: "Fall Play: Antigone", time: "7:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/antigone/", category: "ccu" },
-      { date: "2026-10-30", title: "Fall Choral Concert", time: "7:00 pm - 9:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-choral-concert/", category: "ccu" },
+      { date: "2026-10-01", title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html", category: "ccu", source: "ccu.edu" },
+      { date: "2026-10-08", title: "Two-Day Preview", time: "8:30 am - 2:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html", category: "ccu", source: "ccu.edu" },
+      { date: "2026-10-16", title: "Parent and Family Weekend", time: "11:00 am - 9:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/family-weekend/index.html", category: "ccu", source: "ccu.edu" },
+      { date: "2026-10-16", title: "Fall Symphonic Band Concert", time: "7:00 pm - 8:30 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-symphonic-band-concert/", category: "ccu", source: "ccu.edu" },
+      { date: "2026-10-19", title: "Faith and Freedom Series: Joseph Loconte", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faith-freedom-loconte/index.html", category: "ccu", source: "ccu.edu" },
+      { date: "2026-10-21", title: "Fall Play: Antigone", time: "7:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/antigone/", category: "ccu", source: "ccu.edu" },
+      { date: "2026-10-30", title: "Fall Choral Concert", time: "7:00 pm - 9:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-choral-concert/", category: "ccu", source: "ccu.edu" },
 
-      // Blue: Weekly Class Times
-      { date: "2026-10-05", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://mycourses.ccu.edu", category: "classtime" },
-      { date: "2026-10-07", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://mycourses.ccu.edu", category: "classtime" },
-      { date: "2026-10-09", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://mycourses.ccu.edu", category: "classtime" },
-      { date: "2026-10-06", title: "ENG-210: Academic Writing", time: "10:30 am - 11:45 am", location: "Leprino Hall 204", link: "https://mycourses.ccu.edu", category: "classtime" },
-      { date: "2026-10-08", title: "ENG-210: Academic Writing", time: "10:30 am - 11:45 am", location: "Leprino Hall 204", link: "https://mycourses.ccu.edu", category: "classtime" },
-      { date: "2026-10-12", title: "MGT-301: Principles of Management", time: "1:00 pm - 2:15 pm", location: "Anschutz Hall 210", link: "https://mycourses.ccu.edu", category: "classtime" },
-      { date: "2026-10-14", title: "MGT-301: Principles of Management", time: "1:00 pm - 2:15 pm", location: "Anschutz Hall 210", link: "https://mycourses.ccu.edu", category: "classtime" },
+      // Blue: Weekly Classes
+      { date: "2026-10-05", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
+      { date: "2026-10-07", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
+      { date: "2026-10-09", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
+      { date: "2026-10-06", title: "ENG-210: Academic Writing", time: "10:30 am - 11:45 am", location: "Leprino Hall 204", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
+      { date: "2026-10-08", title: "ENG-210: Academic Writing", time: "10:30 am - 11:45 am", location: "Leprino Hall 204", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
 
       // Red: Things Due / Projects
-      { date: "2026-10-25", title: "ENG-210: Essay Draft Project Due", time: "11:59 pm", location: "Brightspace Assignment Drop", link: "https://mycourses.ccu.edu", category: "project" },
-      { date: "2026-10-28", title: "BIB-102: Midterm Project Review", time: "11:59 pm", location: "Brightspace Quiz Portal", link: "https://mycourses.ccu.edu", category: "project" },
-      { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu", category: "project" },
-      { date: "2026-11-24", title: "BIB-102: Term Research Paper Project", time: "11:59 pm", location: "Brightspace Submissions", link: "https://mycourses.ccu.edu", category: "project" },
-      { date: "2026-12-10", title: "Fall Semester Final Capstone Project", time: "11:59 pm", location: "Brightspace Course Portal", link: "https://mycourses.ccu.edu", category: "project" }
+      { date: "2026-10-25", title: "ENG-210: Essay Draft Project Due", time: "11:59 pm", location: "Brightspace Drop", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" },
+      { date: "2026-10-28", title: "BIB-102: Midterm Project Review", time: "11:59 pm", location: "Brightspace Portal", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" },
+      { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" }
     ];
 
     function getEventKey(item) {
@@ -464,6 +608,238 @@
 
     function saveMasterEvents(list) {
       localStorage.setItem('ccu_master_calendar', JSON.stringify(list));
+      populateSourceFilterDropdown();
+    }
+
+    // Populate Universal Filter Dropdown for Web URLs & Files
+    function populateSourceFilterDropdown() {
+      const dropdown = document.getElementById('sourceFilterSelect');
+      const events = loadMasterEvents();
+      const sources = new Set();
+
+      events.forEach(e => {
+        const src = e.source || (e.link && e.link !== '#' ? e.link : null);
+        if (src && src.trim() !== '') {
+          sources.add(src.trim());
+        }
+      });
+
+      const currentVal = dropdown.value;
+      dropdown.innerHTML = '<option value="">-- All Sources --</option>';
+
+      sources.forEach(src => {
+        const opt = document.createElement('option');
+        opt.value = src;
+        const displayLabel = src.length > 40 ? src.substring(0, 38) + '...' : src;
+        opt.textContent = src.startsWith('File:') || src.endsWith('.pdf') || src.endsWith('.ics') || src.endsWith('.txt') ? `📄 ${displayLabel}` : `🔗 ${displayLabel}`;
+        dropdown.appendChild(opt);
+      });
+
+      dropdown.value = currentVal;
+    }
+
+    function updateSourceFilter() {
+      selectedSourceFilter = document.getElementById('sourceFilterSelect').value;
+      renderCalendar();
+    }
+
+    function toggleFilterState(enabled) {
+      isFilterActive = enabled;
+      renderCalendar();
+    }
+
+    // Scan File for Mentioned Dates & Extract Schedule
+    function scanFileForDates(files) {
+      if (!files || files.length === 0) return;
+      const file = files[0];
+      const fileName = file.name;
+      const status = document.getElementById('fileScanStatus');
+      status.textContent = `Scanning file "${fileName}"...`;
+
+      const reader = new FileReader();
+
+      reader.onload = function(e) {
+        const content = e.target.result;
+        const masterList = loadMasterEvents();
+        let addedCount = 0;
+
+        // Check if file is an .ICS Calendar
+        if (fileName.endsWith('.ics') || content.includes('BEGIN:VEVENT')) {
+          const lines = content.split(/\r\n|\n/);
+          let currentEvent = null;
+
+          lines.forEach(line => {
+            if (line.startsWith('BEGIN:VEVENT')) {
+              currentEvent = { category: 'classtime', source: `File: ${fileName}`, link: `File: ${fileName}` };
+            } else if (line.startsWith('END:VEVENT')) {
+              if (currentEvent && currentEvent.title && currentEvent.date) {
+                masterList.push(currentEvent);
+                addedCount++;
+              }
+              currentEvent = null;
+            } else if (currentEvent) {
+              if (line.startsWith('SUMMARY:')) {
+                currentEvent.title = line.replace('SUMMARY:', '').trim();
+              } else if (line.startsWith('LOCATION:')) {
+                currentEvent.location = line.replace('LOCATION:', '').trim();
+              } else if (line.startsWith('DTSTART:')) {
+                const dt = line.replace('DTSTART:', '').trim();
+                if (dt.length >= 8) {
+                  const year = dt.substring(0, 4);
+                  const month = dt.substring(4, 6);
+                  const day = dt.substring(6, 8);
+                  currentEvent.date = `${year}-${month}-${day}`;
+                  currentEvent.time = dt.length >= 13 ? `${dt.substring(9, 11)}:${dt.substring(11, 13)}` : 'Class Session';
+                }
+              }
+            }
+          });
+        } else {
+          // Regular Document / Syllabus Text Parsing
+          const dateRegex = /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}/gi;
+          const matches = content.match(dateRegex);
+          const foundDates = new Set();
+
+          if (matches) {
+            matches.forEach(rawDate => {
+              const formattedDate = parseAnyDateString(rawDate);
+              if (formattedDate && !foundDates.has(formattedDate)) {
+                foundDates.add(formattedDate);
+                masterList.push({
+                  date: formattedDate,
+                  title: `${fileName.replace(/\.[^/.]+$/, "")} Session`,
+                  category: "classtime",
+                  time: "File Schedule Item",
+                  location: `File: ${fileName}`,
+                  link: `File: ${fileName}`,
+                  source: `File: ${fileName}`
+                });
+                addedCount++;
+              }
+            });
+          }
+        }
+
+        saveMasterEvents(masterList);
+        status.textContent = `Extracted ${addedCount} date(s) from "${fileName}"! Linked as source.`;
+
+        // Auto-select file source in filter
+        const fileTag = `File: ${fileName}`;
+        document.getElementById('sourceFilterSelect').value = fileTag;
+        selectedSourceFilter = fileTag;
+        renderCalendar();
+      };
+
+      reader.readAsText(file);
+    }
+
+    // Web Page URL Extractor
+    async function extractEventsFromUrl() {
+      const targetUrl = document.getElementById('urlScraperInput').value.trim();
+      if (!targetUrl) { alert('Please enter a valid webpage URL.'); return; }
+
+      const btn = document.getElementById('scrapeBtn');
+      const spinner = document.getElementById('scrapeSpinner');
+      const status = document.getElementById('scraperStatus');
+
+      btn.disabled = true;
+      spinner.style.display = 'inline-block';
+      status.textContent = 'Scanning webpage content for dates...';
+
+      try {
+        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
+        const res = await fetch(proxyUrl);
+        if (!res.ok) throw new Error('Webpage could not be fetched.');
+        const htmlText = await res.text();
+
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(htmlText, 'text/html');
+
+        let pageTitle = doc.querySelector('title')?.innerText || 'Web Event';
+        pageTitle = pageTitle.split('|')[0].trim();
+
+        const masterList = loadMasterEvents();
+        let addedCount = 0;
+
+        const dateRegex = /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}/gi;
+        const textElements = doc.querySelectorAll('p, h1, h2, h3, h4, li, time');
+        const foundDates = new Set();
+
+        textElements.forEach(el => {
+          const txt = el.innerText || el.textContent;
+          const matches = txt.match(dateRegex);
+          if (matches) {
+            matches.forEach(rawDate => {
+              const formattedDate = parseAnyDateString(rawDate);
+              if (formattedDate && !foundDates.has(formattedDate)) {
+                foundDates.add(formattedDate);
+                masterList.push({
+                  date: formattedDate,
+                  title: pageTitle.substring(0, 45),
+                  category: "ccu",
+                  time: "Web Event",
+                  location: new URL(targetUrl).hostname,
+                  link: targetUrl,
+                  source: targetUrl
+                });
+                addedCount++;
+              }
+            });
+          }
+        });
+
+        saveMasterEvents(masterList);
+        status.textContent = `Extracted ${addedCount} date(s) from webpage!`;
+
+        document.getElementById('sourceFilterSelect').value = targetUrl;
+        selectedSourceFilter = targetUrl;
+        renderCalendar();
+      } catch (err) {
+        status.textContent = 'Could not parse webpage automatically. Try pasting text below.';
+      } finally {
+        btn.disabled = false;
+        spinner.style.display = 'none';
+      }
+    }
+
+    function parseAnyDateString(str) {
+      try {
+        const d = new Date(str);
+        if (isNaN(d.getTime())) return null;
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+      } catch(e) { return null; }
+    }
+
+    function parsePastedSchedule() {
+      const text = document.getElementById('pasteInput').value;
+      if (!text.trim()) { alert('Please paste schedule text.'); return; }
+
+      const masterList = loadMasterEvents();
+      const lines = text.split('\n');
+      let added = 0;
+
+      lines.forEach(line => {
+        const trimmed = line.trim();
+        if (trimmed.length > 5) {
+          masterList.push({
+            date: "2026-10-15",
+            title: trimmed.substring(0, 40),
+            category: "classtime",
+            time: "Scheduled Class",
+            location: "CCU Campus",
+            source: "Pasted Schedule"
+          });
+          added++;
+        }
+      });
+
+      saveMasterEvents(masterList);
+      alert(`Parsed ${added} course items into calendar!`);
+      renderCalendar();
+      document.getElementById('pasteInput').value = '';
     }
 
     async function fetchLiveEvents() {
@@ -474,8 +850,8 @@
 
       syncBtn.disabled = true;
       syncSpinner.style.display = 'inline-block';
-      syncBtnText.textContent = 'Checking for New Events...';
-      statusEl.textContent = 'Scanning Brightspace & CCU feeds for new entries...';
+      syncBtnText.textContent = 'Checking Feeds...';
+      statusEl.textContent = 'Scanning Brightspace & CCU feeds...';
 
       let currentList = loadMasterEvents();
       let addedCount = 0;
@@ -506,11 +882,7 @@
       await new Promise(resolve => setTimeout(resolve, 800));
 
       const now = new Date();
-      if (addedCount > 0) {
-        statusEl.textContent = `Sync complete: Added ${addedCount} new item(s)! (${now.toLocaleTimeString()})`;
-      } else {
-        statusEl.textContent = `Sync complete: All class times & events are up to date! (${now.toLocaleTimeString()})`;
-      }
+      statusEl.textContent = addedCount > 0 ? `Added ${addedCount} new item(s)! (${now.toLocaleTimeString()})` : `Fully up to date! (${now.toLocaleTimeString()})`;
 
       syncSpinner.style.display = 'none';
       syncBtnText.textContent = 'Sync Brightspace & CCU';
@@ -529,9 +901,7 @@
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('theme', theme);
       const themeBtn = document.getElementById('themeToggle');
-      if (themeBtn) {
-        themeBtn.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
-      }
+      if (themeBtn) themeBtn.textContent = theme === 'dark' ? '☀️ Light' : '🌙 Dark';
     }
 
     function toggleTheme() {
@@ -566,6 +936,16 @@
       renderCalendar();
     }
 
+    // Check if an event matches the active source filter
+    function eventMatchesFilter(e, filterTarget) {
+      if (!filterTarget) return true;
+      const target = filterTarget.toLowerCase().trim();
+      const linkMatch = e.link && e.link.toLowerCase().includes(target);
+      const sourceMatch = e.source && e.source.toLowerCase().includes(target);
+      const locMatch = e.location && e.location.toLowerCase().includes(target);
+      return linkMatch || sourceMatch || locMatch;
+    }
+
     function renderCalendar() {
       const grid = document.getElementById('calendarDays');
       const list = document.getElementById('eventList');
@@ -591,6 +971,8 @@
       const todayObj = new Date();
       const isCurrentMonthReal = todayObj.getFullYear() === year && todayObj.getMonth() === month;
 
+      const useFilter = isFilterActive && selectedSourceFilter.trim() !== '';
+
       for (let i = 0; i < firstDay; i++) {
         const empty = document.createElement('div');
         empty.className = 'day empty';
@@ -604,23 +986,29 @@
         const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
 
         const isToday = isCurrentMonthReal && todayObj.getDate() === day;
-        dayDiv.className = `day ${isToday ? 'today' : ''}`;
+        const dayEvents = activeEvents.filter(e => e.date === dateStr);
+
+        const hasMatchingSourceEvent = dayEvents.some(e => eventMatchesFilter(e, selectedSourceFilter));
+        const isDimmedDay = useFilter && !hasMatchingSourceEvent;
+
+        dayDiv.className = `day ${isToday ? 'today' : ''} ${isDimmedDay ? 'dimmed-day' : ''}`;
 
         const dayNum = document.createElement('div');
         dayNum.className = 'day-number';
         dayNum.innerHTML = `<span>${day}</span>${isToday ? '<span class="today-badge">Today</span>' : ''}`;
         dayDiv.appendChild(dayNum);
 
-        const dayEvents = activeEvents.filter(e => e.date === dateStr);
-        
         const eventsContainer = document.createElement('div');
         eventsContainer.className = 'events-container';
 
         dayEvents.forEach(e => {
           const pill = document.createElement('a');
           const cat = e.category || 'ccu';
-          pill.className = `event-pill ${cat}`;
-          const icon = cat === 'project' ? '🟥 ' : cat === 'classtime' || cat === 'brightspace' ? '🟦 ' : '🟨 ';
+          
+          const isPillMatch = !useFilter || eventMatchesFilter(e, selectedSourceFilter);
+          pill.className = `event-pill ${cat} ${!isPillMatch ? 'dimmed-pill' : ''}`;
+
+          const icon = cat === 'project' ? '🟥 ' : cat === 'classtime' || cat === 'brightspace' || cat === 'file' ? '🟦 ' : '🟨 ';
           pill.textContent = icon + e.title;
           pill.href = e.link || '#';
           pill.target = '_blank';
@@ -638,27 +1026,70 @@
         .sort((a, b) => a.date.localeCompare(b.date));
 
       if (monthEvents.length === 0) {
-        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">No class times or events found for this month.</div>';
+        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">No events scheduled for this month.</div>';
       } else {
         monthEvents.forEach(e => {
           const item = document.createElement('div');
           const cat = e.category || 'ccu';
-          item.className = `event-item ${cat}`;
+          
+          const isItemMatch = !useFilter || eventMatchesFilter(e, selectedSourceFilter);
+          item.className = `event-item ${cat} ${!isItemMatch ? 'dimmed-item' : ''}`;
+
           const eventDateObj = new Date(e.date + 'T00:00:00');
           const dateFormatted = eventDateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-          const label = cat === 'project' ? 'DUE / PROJECT' : cat === 'classtime' || cat === 'brightspace' ? 'CLASS TIME' : 'SCHOOL EVENT';
+          const label = cat === 'project' ? 'DUE / PROJECT' : cat === 'classtime' || cat === 'brightspace' || cat === 'file' ? 'CLASS / FILE' : 'SCHOOL EVENT';
           
           item.innerHTML = `
             <a class="event-title" href="${e.link || '#'}" target="_blank">
               <span class="badge ${cat}">${label}</span> ${e.title}
             </a>
             <div class="event-meta">📅 ${dateFormatted}, ${year} &nbsp;|&nbsp; ⏰ ${e.time}</div>
-            <div class="event-meta">📍 ${e.location || 'CCU / Online'}</div>
+            <div class="event-meta">📍 ${e.location || 'CCU Campus / Online'}</div>
           `;
           list.appendChild(item);
         });
       }
     }
+
+    document.getElementById('classScheduleForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const title = document.getElementById('classTitle').value;
+      const time = document.getElementById('classTime').value;
+      const location = document.getElementById('classLocation').value || 'CCU Campus';
+      const termStart = new Date(document.getElementById('termStart').value + 'T00:00:00');
+      const termEnd = new Date(document.getElementById('termEnd').value + 'T00:00:00');
+
+      const selectedDays = Array.from(document.querySelectorAll('input[name="days"]:checked')).map(cb => parseInt(cb.value));
+      if (selectedDays.length === 0) { alert('Please select at least one meeting day.'); return; }
+
+      const masterList = loadMasterEvents();
+      let added = 0;
+
+      for (let d = new Date(termStart); d <= termEnd; d.setDate(d.getDate() + 1)) {
+        if (selectedDays.includes(d.getDay())) {
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          const dayNum = String(d.getDate()).padStart(2, '0');
+          const dateStr = `${y}-${m}-${dayNum}`;
+
+          masterList.push({
+            date: dateStr,
+            title: title,
+            category: 'classtime',
+            time: time,
+            location: location,
+            link: 'https://selfservice.ccu.edu/Student/Planning/DegreePlans',
+            source: 'Self-Service'
+          });
+          added++;
+        }
+      }
+
+      saveMasterEvents(masterList);
+      alert(`Generated ${added} weekly class sessions!`);
+      renderCalendar();
+      this.reset();
+    });
 
     document.getElementById('eventForm').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -668,7 +1099,8 @@
         category: document.getElementById('category').value,
         time: document.getElementById('time').value,
         location: document.getElementById('location').value || 'CCU Campus / Online',
-        link: document.getElementById('link').value || 'https://mycourses.ccu.edu'
+        link: document.getElementById('link').value || 'https://mycourses.ccu.edu',
+        source: document.getElementById('link').value || 'User Entry'
       };
 
       const masterList = loadMasterEvents();
@@ -685,6 +1117,7 @@
     });
 
     initTheme();
+    populateSourceFilterDropdown();
     renderCalendar();
     document.getElementById('date').valueAsDate = new Date();
   </script>
