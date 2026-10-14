@@ -59,10 +59,16 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--text); padding: 20px; transition: background-color 0.3s, color 0.3s; }
 
-    .header { text-align: center; margin-bottom: 20px; }
+    .header { text-align: center; margin-bottom: 20px; position: relative; }
     .header h1 { color: var(--primary); font-size: 2.2rem; font-weight: 700; letter-spacing: -0.5px; }
     .header p { font-size: 0.9rem; color: var(--text-muted); margin-top: 4px; }
     
+    .user-profile-badge {
+      position: absolute; top: 0; right: 0; display: flex; align-items: center; gap: 8px;
+      background: var(--card-bg); border: 1px solid var(--border); padding: 6px 12px;
+      border-radius: 20px; font-size: 0.8rem; font-weight: 600; box-shadow: 0 2px 8px var(--shadow);
+    }
+
     .status-bar {
       display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
       background: var(--card-bg); border-radius: 10px; padding: 12px 20px; max-width: 1300px;
@@ -83,8 +89,6 @@
     .btn-secondary:hover { opacity: 0.8; }
     .btn-danger { background: #dc2626; color: #ffffff; }
     .btn-danger:hover { background: #b91c1c; }
-    .btn-warning { background: #d97706; color: #ffffff; }
-    .btn-warning:hover { background: #b45309; }
     .theme-toggle-btn { background: var(--primary); color: #ffffff; }
 
     .spinner {
@@ -227,23 +231,73 @@
     .glass-btn-secondary { background: rgba(255, 255, 255, 0.1); color: #f0f4f8; border: 1px solid rgba(255, 255, 255, 0.15); }
     .glass-btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
 
-    /* Undo Toast Banner */
-    .undo-toast {
-      position: fixed; bottom: 25px; right: 25px; z-index: 2000;
-      background: #1e293b; color: #ffffff; border: 1px solid #334155;
-      border-radius: 12px; padding: 14px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      display: none; align-items: center; gap: 16px; font-size: 0.9rem;
-      animation: slideUp 0.3s ease;
+    /* Auth Modal Overlay */
+    .auth-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      display: flex; justify-content: center; align-items: center; z-index: 5000; padding: 20px;
     }
-    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-    .undo-toast.active { display: flex; }
+    .auth-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px;
+      padding: 32px; width: 100%; max-width: 420px; box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+      display: flex; flex-direction: column; gap: 16px; text-align: center;
+    }
+    .auth-card h2 { color: var(--primary); font-size: 1.6rem; font-weight: 800; }
+    .auth-card p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.4; }
+    .auth-card form { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; text-align: left; }
+
+    /* Mobile SMS Notification Simulation Toast */
+    .sms-toast {
+      position: fixed; top: 20px; right: 20px; z-index: 4000; background: #0f172a; color: #38bdf8;
+      border: 1px solid #0284c7; border-radius: 12px; padding: 14px 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      display: none; align-items: center; gap: 12px; font-size: 0.88rem; max-width: 380px;
+      animation: slideDown 0.3s ease;
+    }
+    @keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .sms-toast.active { display: flex; }
   </style>
 </head>
 <body>
 
+  <!-- Authentication Sign Up / Login Modal Overlay -->
+  <div class="auth-overlay" id="authModal">
+    <div class="auth-card" id="signUpCard" style="display: none;">
+      <h2>🔒 Create Your Account</h2>
+      <p>Set up your password and phone number to unlock your personalized CCU Academic Calendar and enable SMS event reminders.</p>
+      <form id="signUpForm">
+        <div class="form-group">
+          <label for="regPhone">📱 Mobile Phone Number</label>
+          <input type="tel" id="regPhone" placeholder="(555) 000-0000" required>
+        </div>
+        <div class="form-group">
+          <label for="regPass">🔑 Create Password</label>
+          <input type="password" id="regPass" placeholder="Enter secure password" required minlength="4">
+        </div>
+        <button type="submit" class="submit-btn" style="background: var(--accent); margin-top: 10px; padding: 12px;">Sign Up & Unlock Calendar</button>
+      </form>
+    </div>
+
+    <div class="auth-card" id="loginCard" style="display: none;">
+      <h2>🔐 Calendar Login</h2>
+      <p>Welcome back! Enter your password to log in and manage your schedule.</p>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginPass">🔑 Password</label>
+          <input type="password" id="loginPass" placeholder="Enter password" required>
+        </div>
+        <button type="submit" class="submit-btn" style="background: var(--accent); margin-top: 10px; padding: 12px;">Log In</button>
+      </form>
+      <div id="loginError" style="color: #ef4444; font-size: 0.82rem; margin-top: 4px; display: none;">Incorrect password. Please try again.</div>
+    </div>
+  </div>
+
   <div class="header">
     <h1>CCU & Brightspace Academic Calendar</h1>
     <p>🟨 School Events &nbsp;|&nbsp; 🟥 Things Due / Projects &nbsp;|&nbsp; 🟦 Weekly Classes & Files</p>
+    <div class="user-profile-badge" id="userBadge" style="display: none;">
+      <span id="userPhoneDisplay">📱 Account</span>
+      <button class="btn btn-secondary" onclick="logoutUser()" style="padding: 2px 8px; font-size: 0.72rem;">Log Out</button>
+    </div>
   </div>
 
   <div class="status-bar">
@@ -278,7 +332,6 @@
             <input type="checkbox" id="filterToggle" onchange="toggleFilterState(this.checked)">
             Gray out non-matching source dates
           </label>
-          <button class="btn btn-danger" onclick="deleteAllEventsWithUndo()" style="padding: 6px 12px; font-size: 0.82rem;">🗑️ Wipe All Events</button>
         </div>
       </div>
 
@@ -397,6 +450,17 @@
             <input type="text" id="time" placeholder="e.g. 11:59 pm" required>
           </div>
           <div class="form-group">
+            <label for="smsReminderSelect">📱 Mobile SMS Reminder</label>
+            <select id="smsReminderSelect">
+              <option value="0">No Reminder</option>
+              <option value="15">15 minutes before</option>
+              <option value="30" selected>30 minutes before</option>
+              <option value="60">1 hour before</option>
+              <option value="120">2 hours before</option>
+              <option value="1440">1 day before</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label for="location">Location / Source</label>
             <input type="text" id="location" placeholder="e.g. Brightspace / Room 204">
           </div>
@@ -430,6 +494,10 @@
           <strong id="modalDateTime">Oct 16, 2026 | 7:00 PM</strong>
         </div>
         <div class="glass-box">
+          <span>📱 Mobile SMS Alert Setting</span>
+          <strong id="modalSmsReminderTxt">30 Minutes Before</strong>
+        </div>
+        <div class="glass-box">
           <span>📍 Location / Room</span>
           <strong id="modalLocation">CCU Armstrong Center</strong>
         </div>
@@ -439,7 +507,7 @@
         </div>
       </div>
       <div class="modal-footer">
-        <button class="btn btn-danger" id="modalDeleteBtn" onclick="deleteActiveModalEvent()">🗑️ Remove Event</button>
+        <button class="btn btn-danger" id="modalDeleteBtn" onclick="deleteActiveModalEvent()">🗑️ Remove Item</button>
         <div style="display: flex; gap: 8px;">
           <a class="btn" id="modalLinkBtn" href="#" target="_blank">Open Link ↗</a>
           <button class="btn glass-btn-secondary" onclick="closeEventModal()">Close</button>
@@ -448,10 +516,13 @@
     </div>
   </div>
 
-  <!-- Undo Deletion Toast Banner -->
-  <div class="undo-toast" id="undoToast">
-    <span>⚠️ All calendar events wiped.</span>
-    <button class="btn btn-warning" onclick="performUndoDelete()">↩️ Undo Deletion (<span id="undoTimerTxt">180s</span>)</button>
+  <!-- Simulated Mobile SMS Alert Banner -->
+  <div class="sms-toast" id="smsToast">
+    <div style="font-size: 1.4rem;">💬</div>
+    <div>
+      <div style="font-weight: 700; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;" id="smsToastPhone">SMS Sent to (555) 000-0000</div>
+      <div style="color: #f8fafc; font-weight: 600; margin-top: 2px;" id="smsToastMessage">Reminder: Upcoming Class in 30 minutes!</div>
+    </div>
   </div>
 
   <script>
@@ -461,31 +532,158 @@
     let selectedSourceFilter = '';
     let activeModalEventKey = null;
 
-    let undoBackupEvents = null;
-    let undoTimer = null;
-    let undoSecondsLeft = 180;
-
     const CCU_UNIFIED_FILTER_KEY = 'CCU Events Page (ccu.edu)';
 
     const defaultBaselineEvents = [
-      { date: "2026-10-01", title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
-      { date: "2026-10-08", title: "Two-Day Preview", time: "8:30 am - 2:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
-      { date: "2026-10-16", title: "Parent and Family Weekend", time: "11:00 am - 9:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/family-weekend/index.html", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
-      { date: "2026-10-16", title: "Fall Symphonic Band Concert", time: "7:00 pm - 8:30 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-symphonic-band-concert/", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
-      { date: "2026-10-19", title: "Faith and Freedom Series: Joseph Loconte", time: "7:00 pm - 8:30 pm", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faith-freedom-loconte/index.html", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
-      { date: "2026-10-21", title: "Fall Play: Antigone", time: "7:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/antigone/", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
-      { date: "2026-10-30", title: "Fall Choral Concert", time: "7:00 pm - 9:00 pm", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-choral-concert/", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
-      { date: "2026-10-05", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
-      { date: "2026-10-07", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
-      { date: "2026-10-09", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", location: "Anschutz Hall 102", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
-      { date: "2026-10-06", title: "ENG-210: Academic Writing", time: "10:30 am - 11:45 am", location: "Leprino Hall 204", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
-      { date: "2026-10-08", title: "ENG-210: Academic Writing", time: "10:30 am - 11:45 am", location: "Leprino Hall 204", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
-      { date: "2026-10-25", title: "ENG-210: Essay Draft Project Due", time: "11:59 pm", location: "Brightspace Drop", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" },
-      { date: "2026-10-28", title: "BIB-102: Midterm Project Review", time: "11:59 pm", location: "Brightspace Portal", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" },
-      { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" }
+      { date: "2026-10-01", title: "REJOICE — A Faculty Recital", time: "7:00 pm - 8:30 pm", reminderMinutes: "60", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faculty-recital-moreland-jardon/index.html", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-08", title: "Two-Day Preview", time: "8:30 am - 2:30 pm", reminderMinutes: "1440", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/two-day-preview/index.html", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-16", title: "Parent and Family Weekend", time: "11:00 am - 9:30 pm", reminderMinutes: "60", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/family-weekend/index.html", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-16", title: "Fall Symphonic Band Concert", time: "7:00 pm - 8:30 pm", reminderMinutes: "30", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-symphonic-band-concert/", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-19", title: "Faith and Freedom Series: Joseph Loconte", time: "7:00 pm - 8:30 pm", reminderMinutes: "30", location: "Colorado Christian University", link: "https://www.ccu.edu/events/2026/10/faith-freedom-loconte/index.html", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-21", title: "Fall Play: Antigone", time: "7:00 pm", reminderMinutes: "30", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/antigone/", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-30", title: "Fall Choral Concert", time: "7:00 pm - 9:00 pm", reminderMinutes: "30", location: "CCU Armstrong Center", link: "https://www.ccu.edu/events/2026/10/fall-choral-concert/", category: "ccu", source: CCU_UNIFIED_FILTER_KEY },
+      { date: "2026-10-05", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", reminderMinutes: "15", location: "Anschutz Hall 102", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
+      { date: "2026-10-07", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", reminderMinutes: "15", location: "Anschutz Hall 102", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
+      { date: "2026-10-09", title: "BIB-102: Theology Lecture", time: "9:00 am - 10:15 am", reminderMinutes: "15", location: "Anschutz Hall 102", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
+      { date: "2026-10-06", title: "ENG-210: Academic Writing", time: "10:30 am - 11:45 am", reminderMinutes: "15", location: "Leprino Hall 204", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
+      { date: "2026-10-08", title: "ENG-210: Academic Writing", time: "10:30 am - 11:45 am", reminderMinutes: "15", location: "Leprino Hall 204", link: "https://selfservice.ccu.edu", category: "classtime", source: "Self-Service" },
+      { date: "2026-10-25", title: "ENG-210: Essay Draft Project Due", time: "11:59 pm", reminderMinutes: "1440", location: "Brightspace Drop", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" },
+      { date: "2026-10-28", title: "BIB-102: Midterm Project Review", time: "11:59 pm", reminderMinutes: "1440", location: "Brightspace Portal", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" },
+      { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", reminderMinutes: "1440", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" }
     ];
 
-    /* Convert 24-hour military strings (e.g. "19:40") to 12-hour AM/PM */
+    /* --- AUTHENTICATION & LOGIN FLOW --- */
+    function checkAuthentication() {
+      const userAccount = localStorage.getItem('ccu_user_account');
+      const isLoggedIn = sessionStorage.getItem('ccu_logged_in');
+
+      const authModal = document.getElementById('authModal');
+      const signUpCard = document.getElementById('signUpCard');
+      const loginCard = document.getElementById('loginCard');
+      const userBadge = document.getElementById('userBadge');
+      const userPhoneDisplay = document.getElementById('userPhoneDisplay');
+
+      if (!userAccount) {
+        authModal.style.display = 'flex';
+        signUpCard.style.display = 'block';
+        loginCard.style.display = 'none';
+        userBadge.style.display = 'none';
+      } else if (isLoggedIn !== 'true') {
+        authModal.style.display = 'flex';
+        signUpCard.style.display = 'none';
+        loginCard.style.display = 'block';
+        userBadge.style.display = 'none';
+      } else {
+        authModal.style.display = 'none';
+        userBadge.style.display = 'inline-flex';
+        const account = JSON.parse(userAccount);
+        userPhoneDisplay.textContent = `📱 ${account.phone}`;
+        if ('Notification' in window && Notification.permission !== 'granted') {
+          Notification.requestPermission();
+        }
+      }
+    }
+
+    document.getElementById('signUpForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const phone = document.getElementById('regPhone').value.trim();
+      const pass = document.getElementById('regPass').value.trim();
+
+      if (!phone || !pass) return;
+
+      const accountData = { phone: phone, pass: pass, createdAt: new Date().toISOString() };
+      localStorage.setItem('ccu_user_account', JSON.stringify(accountData));
+      sessionStorage.setItem('ccu_logged_in', 'true');
+
+      checkAuthentication();
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const enteredPass = document.getElementById('loginPass').value.trim();
+      const savedAccount = JSON.parse(localStorage.getItem('ccu_user_account') || '{}');
+
+      if (savedAccount && savedAccount.pass === enteredPass) {
+        sessionStorage.setItem('ccu_logged_in', 'true');
+        document.getElementById('loginError').style.display = 'none';
+        checkAuthentication();
+      } else {
+        document.getElementById('loginError').style.display = 'block';
+      }
+    });
+
+    function logoutUser() {
+      sessionStorage.removeItem('ccu_logged_in');
+      checkAuthentication();
+    }
+
+    /* --- MOBILE SMS NOTIFICATION SYSTEM --- */
+    function formatReminderMinutes(mins) {
+      const m = parseInt(mins, 10);
+      if (!m || m === 0) return 'No Reminder Set';
+      if (m === 15) return '15 Minutes Before';
+      if (m === 30) return '30 Minutes Before';
+      if (m === 60) return '1 Hour Before';
+      if (m === 120) return '2 Hours Before';
+      if (m === 1440) return '1 Day Before';
+      return `${m} Minutes Before`;
+    }
+
+    function sendSmsNotification(phone, message) {
+      // 1. On-Screen Mobile Toast Banner Simulation
+      const toast = document.getElementById('smsToast');
+      document.getElementById('smsToastPhone').textContent = `SMS Sent to ${phone}`;
+      document.getElementById('smsToastMessage').textContent = message;
+
+      toast.classList.add('active');
+      setTimeout(() => toast.classList.remove('active'), 6000);
+
+      // 2. Browser Native Push Notification
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification(`📱 Calendar SMS Alert (${phone})`, { body: message, icon: 'https://www.ccu.edu/favicon.ico' });
+      }
+    }
+
+    function monitorUpcomingReminders() {
+      const events = loadMasterEvents();
+      const userAccount = JSON.parse(localStorage.getItem('ccu_user_account') || '{}');
+      const phone = userAccount.phone || 'Your Phone';
+      const now = new Date();
+
+      events.forEach(ev => {
+        if (!ev.reminderMinutes || parseInt(ev.reminderMinutes, 10) === 0 || ev.reminderFired) return;
+
+        const eventDateTime = new Date(`${ev.date}T${parseTimeStringTo24Hour(ev.time)}`);
+        if (isNaN(eventDateTime.getTime())) return;
+
+        const reminderTime = new Date(eventDateTime.getTime() - parseInt(ev.reminderMinutes, 10) * 60000);
+
+        if (now >= reminderTime && now <= eventDateTime) {
+          sendSmsNotification(phone, `Reminder: "${ev.title}" starts in ${formatReminderMinutes(ev.reminderMinutes)}! (${formatTimeTo12Hour(ev.time)})`);
+          ev.reminderFired = true;
+          saveMasterEvents(events);
+        }
+      });
+    }
+
+    function parseTimeStringTo24Hour(timeStr) {
+      if (!timeStr) return '09:00:00';
+      const str = String(timeStr).split('-')[0].trim();
+      const match = str.match(/^(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)?$/i);
+      if (match) {
+        let hrs = parseInt(match[1], 10);
+        const mins = match[2];
+        const ampm = match[3] ? match[3].toUpperCase() : null;
+        if (ampm === 'PM' && hrs < 12) hrs += 12;
+        if (ampm === 'AM' && hrs === 12) hrs = 0;
+        return `${String(hrs).padStart(2, '0')}:${mins}:00`;
+      }
+      return '09:00:00';
+    }
+
+    setInterval(monitorUpcomingReminders, 30000);
+
+    /* --- CALENDAR LOGIC --- */
     function formatTimeTo12Hour(timeStr) {
       if (!timeStr) return 'All Day';
       const str = String(timeStr).trim();
@@ -615,50 +813,16 @@
       renderCalendar();
     }
 
-    /* Wipe All Events with 3-Minute Undo */
-    function deleteAllEventsWithUndo() {
-      const current = loadMasterEvents();
-      if (current.length === 0) return alert('Calendar is already empty.');
-
-      if (!confirm(`Are you sure you want to delete all ${current.length} calendar events? You will have 3 minutes to Undo.`)) return;
-
-      undoBackupEvents = [...current];
-      localStorage.setItem('ccu_master_calendar', JSON.stringify([]));
-
-      renderCalendar();
-      populateSourceFilterDropdown();
-      startUndoCountdown();
-    }
-
-    function startUndoCountdown() {
-      clearInterval(undoTimer);
-      undoSecondsLeft = 180;
-      const toast = document.getElementById('undoToast');
-      const timerTxt = document.getElementById('undoTimerTxt');
-
-      toast.classList.add('active');
-      timerTxt.textContent = `${undoSecondsLeft}s`;
-
-      undoTimer = setInterval(() => {
-        undoSecondsLeft--;
-        if (undoSecondsLeft <= 0) {
-          clearInterval(undoTimer);
-          toast.classList.remove('active');
-          undoBackupEvents = null;
-        } else {
-          timerTxt.textContent = `${undoSecondsLeft}s`;
+    function deleteSingleEventByKey(key, evt) {
+      if (evt) evt.stopPropagation();
+      if (confirm('Are you sure you want to remove this item from your calendar?')) {
+        let events = loadMasterEvents();
+        events = events.filter(e => getEventKey(e) !== key);
+        saveMasterEvents(events);
+        if (activeModalEventKey === key) {
+          closeEventModal();
         }
-      }, 1000);
-    }
-
-    function performUndoDelete() {
-      if (undoBackupEvents) {
-        saveMasterEvents(undoBackupEvents);
-        undoBackupEvents = null;
-        clearInterval(undoTimer);
-        document.getElementById('undoToast').classList.remove('active');
         renderCalendar();
-        alert('Calendar items restored successfully!');
       }
     }
 
@@ -673,6 +837,7 @@
       const badge = document.getElementById('modalBadge');
       const title = document.getElementById('modalTitle');
       const dateTime = document.getElementById('modalDateTime');
+      const smsReminderTxt = document.getElementById('modalSmsReminderTxt');
       const location = document.getElementById('modalLocation');
       const source = document.getElementById('modalSource');
       const linkBtn = document.getElementById('modalLinkBtn');
@@ -688,6 +853,7 @@
       const formattedDate = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
       dateTime.textContent = `${formattedDate} • ⏰ ${formatTimeTo12Hour(ev.time)}`;
       
+      smsReminderTxt.textContent = formatReminderMinutes(ev.reminderMinutes || 30);
       location.textContent = unescapeIcsText(ev.location) || 'CCU Campus / Online';
       source.textContent = unescapeIcsText(ev.source) || ev.link || 'Custom Entry';
 
@@ -713,13 +879,8 @@
     }
 
     function deleteActiveModalEvent() {
-      if (!activeModalEventKey) return;
-      if (confirm('Are you sure you want to remove this event from your calendar?')) {
-        let events = loadMasterEvents();
-        events = events.filter(e => getEventKey(e) !== activeModalEventKey);
-        saveMasterEvents(events);
-        closeEventModal();
-        renderCalendar();
+      if (activeModalEventKey) {
+        deleteSingleEventByKey(activeModalEventKey);
       }
     }
 
@@ -743,7 +904,7 @@
 
           lines.forEach(line => {
             if (line.startsWith('BEGIN:VEVENT')) {
-              currentEvent = { category: 'classtime', source: `File: ${fileName}`, link: `File: ${fileName}` };
+              currentEvent = { category: 'classtime', reminderMinutes: '30', source: `File: ${fileName}`, link: `File: ${fileName}` };
             } else if (line.startsWith('END:VEVENT')) {
               if (currentEvent && currentEvent.title && currentEvent.date) {
                 masterList.push(currentEvent);
@@ -778,6 +939,7 @@
                   date: formattedDate,
                   title: `${fileName.replace(/\.[^/.]+$/, "")} Session`,
                   category: "classtime",
+                  reminderMinutes: "30",
                   time: "File Schedule Item",
                   location: `File: ${fileName}`,
                   link: `File: ${fileName}`,
@@ -844,6 +1006,7 @@
                       date: formattedDate,
                       title: pageTitle,
                       category: "ccu",
+                      reminderMinutes: "60",
                       time: "Web Event",
                       location: new URL(url).hostname,
                       link: url,
@@ -914,7 +1077,6 @@
       } catch (e) { return null; }
     }
 
-    /* Smart Self-Service Schedule Parser */
     function parsePastedSchedule() {
       const text = document.getElementById('pasteInput').value;
       if (!text.trim()) return alert('Please paste schedule text.');
@@ -1021,6 +1183,7 @@
                 date: `${y}-${m}-${dayNum}`,
                 title: title + (instructor ? ` (${instructor})` : ''),
                 category: 'classtime',
+                reminderMinutes: '15',
                 time: timeStr || 'Class Session',
                 location: location,
                 link: 'https://selfservice.ccu.edu/Student/Planning/DegreePlans',
@@ -1035,6 +1198,7 @@
             date: startDateStr || "2026-10-15",
             title: title + (instructor ? ` (${instructor})` : ''),
             category: "classtime",
+            reminderMinutes: "15",
             time: timeStr || "Scheduled Class",
             location: location,
             source: "Self-Service"
@@ -1076,6 +1240,7 @@
                 if (item.category === 'ccu' || (item.link && item.link.includes('ccu.edu'))) {
                   item.source = CCU_UNIFIED_FILTER_KEY;
                 }
+                if (!item.reminderMinutes) item.reminderMinutes = '30';
                 currentList.push(item);
                 existingKeys.add(key);
                 addedCount++;
@@ -1238,8 +1403,11 @@
           item.onclick = () => openEventModal(key);
 
           item.innerHTML = `
-            <div class="event-title">
-              <span class="badge ${cat}">${label}</span> ${e.title}
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; width: 100%;">
+              <div class="event-title" style="flex: 1;">
+                <span class="badge ${cat}">${label}</span> ${e.title}
+              </div>
+              <button class="btn btn-danger" style="padding: 3px 8px; font-size: 0.72rem; flex-shrink: 0;" onclick="deleteSingleEventByKey('${key}', event)" title="Remove this item">🗑️ Remove</button>
             </div>
             <div class="event-meta">📅 ${dateFormatted}, ${year} &nbsp;|&nbsp; ⏰ ${formatTimeTo12Hour(e.time)}</div>
             <div class="event-meta">📍 ${unescapeIcsText(e.location) || 'CCU Campus / Online'}</div>
@@ -1268,7 +1436,7 @@
           const m = String(d.getMonth() + 1).padStart(2, '0');
           const dayNum = String(d.getDate()).padStart(2, '0');
           masterList.push({
-            date: `${y}-${m}-${dayNum}`, title: title, category: 'classtime', time: formatTimeTo12Hour(time), location: location,
+            date: `${y}-${m}-${dayNum}`, title: title, category: 'classtime', reminderMinutes: '15', time: formatTimeTo12Hour(time), location: location,
             link: 'https://selfservice.ccu.edu/Student/Planning/DegreePlans', source: 'Self-Service'
           });
           added++;
@@ -1288,6 +1456,7 @@
         title: document.getElementById('title').value,
         category: document.getElementById('category').value,
         time: formatTimeTo12Hour(document.getElementById('time').value),
+        reminderMinutes: document.getElementById('smsReminderSelect').value,
         location: document.getElementById('location').value || 'CCU Campus / Online',
         link: document.getElementById('link').value || 'https://mycourses.ccu.edu',
         source: document.getElementById('link').value || 'User Entry'
@@ -1306,6 +1475,8 @@
       this.reset();
     });
 
+    // Initialize Page Flow
+    checkAuthentication();
     initTheme();
     populateSourceFilterDropdown();
     renderCalendar();
