@@ -322,7 +322,7 @@
         </div>
         <button class="btn" id="scrapeBtn" style="width: 100%; margin-top: 6px;" onclick="extractEventsFromUrl()">
           <span class="spinner" id="scrapeSpinner"></span>
-          Scan & Add Webpage Dates
+          Deep Scan Webpage & Links
         </button>
         <div id="scraperStatus" style="font-size: 0.78rem; color: var(--text-muted); margin-top: 6px;"></div>
       </div>
@@ -777,6 +777,7 @@
       reader.readAsText(file);
     }
 
+    /* DEEP SCRAWLER: Scans Main Page + Follows & Scrapes Linked Sub-Pages */
     async function extractEventsFromUrl() {
       const targetUrl = document.getElementById('urlScraperInput').value.trim();
       if (!targetUrl) return alert('Please enter a valid webpage URL.');
@@ -787,53 +788,99 @@
 
       btn.disabled = true;
       spinner.style.display = 'inline-block';
-      status.textContent = 'Scanning webpage content for dates...';
+      status.textContent = 'Initiating deep crawler scan on main webpage...';
 
       try {
-        const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(targetUrl);
-        const res = await fetch(proxyUrl);
-        if (!res.ok) throw new Error('Webpage could not be fetched.');
-        const htmlText = await res.text();
-
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(htmlText, 'text/html');
-        let pageTitle = (doc.querySelector('title')?.innerText || 'Web Event').split('|')[0].trim();
-
         const masterList = loadMasterEvents();
-        let addedCount = 0;
         const dateRegex = /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{1,2}(?:st|nd|rd|th)?,?\s+\d{4}|\d{4}-\d{2}-\d{2}|\d{1,2}\/\d{1,2}\/\d{4}/gi;
-        const textElements = doc.querySelectorAll('p, h1, h2, h3, h4, li, time');
         const foundDates = new Set();
+        const visitedUrls = new Set([targetUrl]);
+        let addedCount = 0;
 
-        textElements.forEach(el => {
-          const txt = el.innerText || el.textContent;
-          const matches = txt.match(dateRegex);
-          if (matches) {
-            matches.forEach(rawDate => {
-              const formattedDate = parseAnyDateString(rawDate);
-              if (formattedDate && !foundDates.has(formattedDate)) {
-                foundDates.add(formattedDate);
-                masterList.push({
-                  date: formattedDate,
-                  title: pageTitle,
-                  category: "ccu",
-                  time: "Web Event",
-                  location: new URL(targetUrl).hostname,
-                  link: targetUrl,
-                  source: targetUrl.includes('ccu.edu') ? CCU_UNIFIED_FILTER_KEY : targetUrl
+        async function parseSinglePage(url, isSubPage = false) {
+          try {
+            const proxyUrl = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(url);
+            const res = await fetch(proxyUrl);
+            if (!res.ok) return [];
+
+            const htmlText = await res.text();
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+
+            let pageTitle = (doc.querySelector('title')?.innerText || 'Web Event').split('|')[0].trim();
+            const textElements = doc.querySelectorAll('p, h1, h2, h3, h4, h5, li, time, article, td, .event-item');
+
+            textElements.forEach(el => {
+              const txt = el.innerText || el.textContent;
+              const matches = txt.match(dateRegex);
+              if (matches) {
+                matches.forEach(rawDate => {
+                  const formattedDate = parseAnyDateString(rawDate);
+                  const eventKey = `${formattedDate}_${pageTitle}_${url}`;
+                  if (formattedDate && !foundDates.has(eventKey)) {
+                    foundDates.add(eventKey);
+                    masterList.push({
+                      date: formattedDate,
+                      title: pageTitle,
+                      category: "ccu",
+                      time: "Web Event",
+                      location: new URL(url).hostname,
+                      link: url,
+                      source: targetUrl.includes('ccu.edu') ? CCU_UNIFIED_FILTER_KEY : targetUrl
+                    });
+                    addedCount++;
+                  }
                 });
-                addedCount++;
               }
             });
+
+            // Extract internal sub-links from main page
+            if (!isSubPage) {
+              const childLinks = [];
+              const baseUrlObj = new URL(url);
+              const anchors = doc.querySelectorAll('a[href]');
+
+              anchors.forEach(a => {
+                try {
+                  const href = a.getAttribute('href');
+                  if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:')) return;
+                  const fullUrl = new URL(href, url).href;
+
+                  // Crawl same-domain internal pages or sub-event links
+                  if (!visitedUrls.has(fullUrl) && new URL(fullUrl).hostname === baseUrlObj.hostname) {
+                    visitedUrls.add(fullUrl);
+                    childLinks.push(fullUrl);
+                  }
+                } catch (e) {}
+              });
+              return childLinks;
+            }
+          } catch (err) {
+            console.warn('Failed to scrape sub-page:', url, err);
           }
-        });
+          return [];
+        }
+
+        // 1. Scan Main Webpage
+        status.textContent = 'Scanning main page and extracting sub-links...';
+        const subLinks = await parseSinglePage(targetUrl, false);
+
+        // 2. Scan Deep Linked Pages (up to 10 child pages)
+        const linksToScrape = subLinks.slice(0, 10);
+        for (let i = 0; i < linksToScrape.length; i++) {
+          const subUrl = linksToScrape[i];
+          status.textContent = `Deep scanning linked page ${i + 1} of ${linksToScrape.length}... (${addedCount} dates found)`;
+          await parseSinglePage(subUrl, true);
+        }
 
         saveMasterEvents(masterList);
-        status.textContent = `Extracted ${addedCount} date(s) from webpage!`;
+        status.textContent = `Deep scan complete! Extracted ${addedCount} total date(s) across main page & ${linksToScrape.length} sub-links!`;
+
         const newSource = targetUrl.includes('ccu.edu') ? CCU_UNIFIED_FILTER_KEY : targetUrl;
         document.getElementById('sourceFilterSelect').value = newSource;
         selectedSourceFilter = newSource;
         renderCalendar();
+
       } catch (err) {
         status.textContent = 'Could not parse webpage automatically. Try pasting text below.';
       } finally {
