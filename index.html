@@ -165,21 +165,23 @@
     input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); }
     button.submit-btn { background: var(--primary); color: #ffffff; border: none; font-weight: 700; cursor: pointer; margin-top: 5px; }
 
-    /* DESIGN 3: Dark Glassmorphism Modal Styling */
+    /* Glassmorphism Modal - Auto-Fitting & Non-Clipping */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
       display: none; justify-content: center; align-items: center;
       z-index: 1000; padding: 15px; opacity: 0; transition: opacity 0.25s ease;
+      overflow-y: auto;
     }
     .modal-overlay.active { display: flex; opacity: 1; }
     .modal-card.design-glass {
-      background: rgba(22, 27, 34, 0.88);
+      background: rgba(22, 27, 34, 0.92);
       backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 18px; width: 100%; max-width: 520px; padding: 28px 24px 24px 24px;
+      border-radius: 18px; width: 100%; max-width: 540px; padding: 28px 24px 24px 24px;
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
       position: relative; overflow: hidden; color: #f0f4f8;
+      max-height: 90vh; display: flex; flex-direction: column;
       transform: translateY(12px) scale(0.98); transition: transform 0.25s ease;
     }
     .modal-overlay.active .modal-card.design-glass { transform: translateY(0) scale(1); }
@@ -188,34 +190,37 @@
       position: absolute; top: 0; left: 0; right: 0; height: 4px;
       background: linear-gradient(90deg, #0072ce 0%, #facc15 50%, #dc2626 100%);
     }
-    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 10px; }
+    .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; gap: 10px; flex-shrink: 0; }
     .glass-chip {
       font-size: 0.72rem; font-weight: 800; padding: 4px 12px; border-radius: 20px;
-      text-transform: uppercase; letter-spacing: 0.5px; display: inline-block;
+      text-transform: uppercase; letter-spacing: 0.5px; display: inline-block; white-space: nowrap;
     }
     .glass-chip.ccu { background: rgba(234, 179, 8, 0.25); color: #facc15; border: 1px solid rgba(250, 204, 21, 0.4); }
     .glass-chip.project { background: rgba(220, 38, 38, 0.25); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.4); }
     .glass-chip.classtime, .glass-chip.brightspace, .glass-chip.file { background: rgba(0, 114, 206, 0.25); color: #60a5fa; border: 1px solid rgba(96, 165, 250, 0.4); }
 
-    .modal-title { font-size: 1.4rem; font-weight: 700; color: #ffffff; line-height: 1.35; margin-top: 6px; word-break: break-word; }
+    .modal-title {
+      font-size: 1.35rem; font-weight: 700; color: #ffffff; line-height: 1.35; margin-top: 6px;
+      word-break: break-word; overflow-wrap: anywhere;
+    }
     .modal-close-btn {
       background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center;
-      justify-content: center; font-size: 1.2rem; cursor: pointer; color: #a0aec0; transition: all 0.2s;
+      justify-content: center; font-size: 1.2rem; cursor: pointer; color: #a0aec0; transition: all 0.2s; flex-shrink: 0;
     }
     .modal-close-btn:hover { background: rgba(255, 255, 255, 0.2); color: #ffffff; }
 
-    .glass-grid { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; }
+    .glass-grid { display: flex; flex-direction: column; gap: 10px; margin: 18px 0; overflow-y: auto; padding-right: 4px; }
     .glass-box {
       background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1);
       padding: 12px 16px; border-radius: 10px; display: flex; flex-direction: column; gap: 3px;
     }
     .glass-box span { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: #94a3b8; font-weight: 700; }
-    .glass-box strong { font-size: 0.95rem; color: #f8fafc; word-break: break-word; }
+    .glass-box strong { font-size: 0.95rem; color: #f8fafc; word-break: break-word; overflow-wrap: anywhere; line-height: 1.4; }
 
     .modal-footer {
-      display: flex; justify-content: space-between; align-items: center; margin-top: 18px;
-      padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1); gap: 10px; flex-wrap: wrap;
+      display: flex; justify-content: space-between; align-items: center; margin-top: auto;
+      padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.1); gap: 10px; flex-wrap: wrap; flex-shrink: 0;
     }
     .glass-btn-secondary { background: rgba(255, 255, 255, 0.1); color: #f0f4f8; border: 1px solid rgba(255, 255, 255, 0.15); }
     .glass-btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
@@ -393,7 +398,7 @@
     </div>
   </div>
 
-  <!-- DESIGN 3: Dark Glassmorphism Event Info Modal -->
+  <!-- Glassmorphism Event Details Modal Window -->
   <div class="modal-overlay" id="eventModal" onclick="closeModalOnOverlay(event)">
     <div class="modal-card design-glass">
       <div class="glass-glow-bar"></div>
@@ -408,11 +413,11 @@
           <strong id="modalDateTime">Oct 16, 2026 | 7:00 PM</strong>
         </div>
         <div class="glass-box">
-          <span>📍 Classroom / Location</span>
+          <span>📍 Location / Room</span>
           <strong id="modalLocation">CCU Armstrong Center</strong>
         </div>
         <div class="glass-box">
-          <span>🔗 Source / Web Feed</span>
+          <span>🔗 Source / File Link</span>
           <strong id="modalSource">CCU Events Page</strong>
         </div>
       </div>
@@ -452,6 +457,15 @@
       { date: "2026-10-28", title: "BIB-102: Midterm Project Review", time: "11:59 pm", location: "Brightspace Portal", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" },
       { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" }
     ];
+
+    function unescapeIcsText(str) {
+      if (!str) return '';
+      return str.replace(/\\,/g, ',')
+                .replace(/\\;/g, ';')
+                .replace(/\\\\/g, '\\')
+                .replace(/\\n/gi, ' ')
+                .trim();
+    }
 
     function getEventKey(item) {
       return `${item.date || ''}_${item.title || ''}_${item.time || ''}`.toLowerCase().trim();
@@ -524,7 +538,6 @@
       renderCalendar();
     }
 
-    /* Modal Controls - Glassmorphism Concept */
     function openEventModal(eventKey) {
       const events = loadMasterEvents();
       const ev = events.find(item => getEventKey(item) === eventKey);
@@ -551,10 +564,10 @@
       const formattedDate = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
       dateTime.textContent = `${formattedDate} • ⏰ ${ev.time || 'All Day'}`;
       
-      location.textContent = ev.location || 'CCU Campus / Online';
-      source.textContent = ev.source || ev.link || 'Custom Entry';
+      location.textContent = unescapeIcsText(ev.location) || 'CCU Campus / Online';
+      source.textContent = unescapeIcsText(ev.source) || ev.link || 'Custom Entry';
 
-      if (ev.link && ev.link !== '#') {
+      if (ev.link && ev.link !== '#' && !ev.link.startsWith('File:')) {
         linkBtn.href = ev.link;
         linkBtn.style.display = 'inline-flex';
       } else {
@@ -595,13 +608,16 @@
 
       const reader = new FileReader();
       reader.onload = function(e) {
-        const content = e.target.result;
+        let content = e.target.result;
         const masterList = loadMasterEvents();
         let addedCount = 0;
 
         if (fileName.endsWith('.ics') || content.includes('BEGIN:VEVENT')) {
+          // Unfold multi-line folded text in ICS RFC 5545
+          content = content.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
           const lines = content.split(/\r\n|\n/);
           let currentEvent = null;
+
           lines.forEach(line => {
             if (line.startsWith('BEGIN:VEVENT')) {
               currentEvent = { category: 'classtime', source: `File: ${fileName}`, link: `File: ${fileName}` };
@@ -612,9 +628,11 @@
               }
               currentEvent = null;
             } else if (currentEvent) {
-              if (line.startsWith('SUMMARY:')) currentEvent.title = line.replace('SUMMARY:', '').trim();
-              else if (line.startsWith('LOCATION:')) currentEvent.location = line.replace('LOCATION:', '').trim();
-              else if (line.startsWith('DTSTART:')) {
+              if (line.startsWith('SUMMARY:')) {
+                currentEvent.title = unescapeIcsText(line.replace('SUMMARY:', ''));
+              } else if (line.startsWith('LOCATION:')) {
+                currentEvent.location = unescapeIcsText(line.replace('LOCATION:', ''));
+              } else if (line.startsWith('DTSTART:')) {
                 const dt = line.replace('DTSTART:', '').trim();
                 if (dt.length >= 8) {
                   currentEvent.date = `${dt.substring(0, 4)}-${dt.substring(4, 6)}-${dt.substring(6, 8)}`;
@@ -695,7 +713,7 @@
                 foundDates.add(formattedDate);
                 masterList.push({
                   date: formattedDate,
-                  title: pageTitle.substring(0, 45),
+                  title: pageTitle,
                   category: "ccu",
                   time: "Web Event",
                   location: new URL(targetUrl).hostname,
@@ -740,10 +758,10 @@
 
       lines.forEach(line => {
         const trimmed = line.trim();
-        if (trimmed.length > 5) {
+        if (trimmed.length > 2) {
           masterList.push({
             date: "2026-10-15",
-            title: trimmed.substring(0, 40),
+            title: trimmed,
             category: "classtime",
             time: "Scheduled Class",
             location: "CCU Campus",
@@ -951,7 +969,7 @@
               <span class="badge ${cat}">${label}</span> ${e.title}
             </div>
             <div class="event-meta">📅 ${dateFormatted}, ${year} &nbsp;|&nbsp; ⏰ ${e.time}</div>
-            <div class="event-meta">📍 ${e.location || 'CCU Campus / Online'}</div>
+            <div class="event-meta">📍 ${unescapeIcsText(e.location) || 'CCU Campus / Online'}</div>
           `;
           list.appendChild(item);
         });
