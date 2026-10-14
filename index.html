@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CCU & Brightspace Academic Calendar</title>
+  <!-- EmailJS Library for Client-Side Email Delivery -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <style>
     :root {
       --primary: #002b49;
@@ -89,6 +91,8 @@
     .btn-secondary:hover { opacity: 0.8; }
     .btn-danger { background: #dc2626; color: #ffffff; }
     .btn-danger:hover { background: #b91c1c; }
+    .btn-success { background: #16a34a; color: #ffffff; }
+    .btn-success:hover { background: #15803d; }
     .theme-toggle-btn { background: var(--primary); color: #ffffff; }
 
     .spinner {
@@ -109,7 +113,6 @@
     .filter-bar label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
     .toggle-switch { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
 
-    /* 3-Column Responsive Grid with Left Sidebar */
     .container {
       display: grid;
       grid-template-columns: 310px 1fr 340px;
@@ -185,7 +188,6 @@
     input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); }
     button.submit-btn { background: var(--primary); color: #ffffff; border: none; font-weight: 700; cursor: pointer; margin-top: 5px; }
 
-    /* Notification Sidebar Specific Styling */
     .sidebar-section-title { font-size: 0.82rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 10px; margin-bottom: 6px; }
 
     /* Glassmorphism Modal */
@@ -263,7 +265,7 @@
     .auth-card p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.4; }
     .auth-card form { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; text-align: left; }
 
-    /* Mobile SMS Notification Simulation Toast */
+    /* Notification Simulation Toast */
     .sms-toast {
       position: fixed; top: 20px; right: 20px; z-index: 4000; background: #0f172a; color: #38bdf8;
       border: 1px solid #0284c7; border-radius: 12px; padding: 14px 18px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
@@ -280,11 +282,11 @@
   <div class="auth-overlay" id="authModal">
     <div class="auth-card" id="signUpCard" style="display: none;">
       <h2>🔒 Create Your Account</h2>
-      <p>Set up your password and phone number to unlock your personalized CCU Academic Calendar and enable SMS event reminders.</p>
+      <p>Set up your password and email address to unlock your personalized CCU Academic Calendar and enable event email reminders.</p>
       <form id="signUpForm">
         <div class="form-group">
-          <label for="regPhone">📱 Mobile Phone Number</label>
-          <input type="tel" id="regPhone" placeholder="(555) 000-0000" required>
+          <label for="regEmail">📧 Email Address</label>
+          <input type="email" id="regEmail" placeholder="student@ccu.edu" required>
         </div>
         <div class="form-group">
           <label for="regPass">🔑 Create Password</label>
@@ -312,7 +314,7 @@
     <h1>CCU & Brightspace Academic Calendar</h1>
     <p>🟨 School Events &nbsp;|&nbsp; 🟥 Things Due / Projects &nbsp;|&nbsp; 🟦 Weekly Classes & Files</p>
     <div class="user-profile-badge" id="userBadge" style="display: none;">
-      <span id="userPhoneDisplay">📱 Account</span>
+      <span id="userEmailDisplay">📧 Account</span>
       <button class="btn btn-secondary" onclick="logoutUser()" style="padding: 2px 8px; font-size: 0.72rem;">Log Out</button>
     </div>
   </div>
@@ -320,6 +322,9 @@
   <div class="status-bar">
     <span id="lastUpdated">Ready to sync live feeds...</span>
     <div class="controls-group">
+      <button class="btn btn-success" onclick="exportToIcsFile()" title="Sync all events directly to iPhone / Android native calendar alarms">
+        📥 Export .ics to Phone Calendar
+      </button>
       <div class="zoom-controls">
         <button class="btn btn-secondary" onclick="changeZoom(-10)">-</button>
         <span class="zoom-label" id="zoomLevelText">100%</span>
@@ -340,14 +345,35 @@
     <div class="sidebar sidebar-left">
       <div class="card">
         <h2>🔔 Notification Settings</h2>
+
+        <button class="btn btn-success" style="width: 100%; margin-bottom: 12px; justify-content: center; font-size: 0.85rem;" onclick="exportToIcsFile()">
+          📱 Sync Alarms to Phone (.ics)
+        </button>
         
         <div class="sidebar-section-title">1. Delivery Methods (Where)</div>
         <div class="form-group">
           <label class="toggle-switch">
-            <input type="checkbox" id="prefSmsToggle" onchange="saveNotificationPrefs()" checked>
-            📱 SMS Text Messages
+            <input type="checkbox" id="prefEmailToggle" onchange="saveNotificationPrefs()" checked>
+            📧 Email Notifications (EmailJS)
           </label>
-          <input type="tel" id="prefPhoneInput" placeholder="Mobile Phone #" onchange="saveNotificationPrefs()" style="margin-top: 4px;">
+          <input type="email" id="prefEmailInput" placeholder="your-email@domain.com" onchange="saveNotificationPrefs()" style="margin-top: 4px;">
+        </div>
+
+        <!-- Direct EmailJS Integration Configuration -->
+        <div class="form-group" style="margin-top: 8px;">
+          <label for="prefEmailJsPublicKey">📧 EmailJS Public Key</label>
+          <input type="text" id="prefEmailJsPublicKey" placeholder="e.g. user_xxx..." onchange="saveNotificationPrefs()">
+        </div>
+
+        <div class="form-group" style="margin-top: 8px;">
+          <label for="prefEmailJsServiceId">⚙️ EmailJS Service ID</label>
+          <input type="text" id="prefEmailJsServiceId" placeholder="e.g. service_xxx" onchange="saveNotificationPrefs()">
+        </div>
+
+        <div class="form-group" style="margin-top: 8px;">
+          <label for="prefEmailJsTemplateId">📝 EmailJS Template ID</label>
+          <input type="text" id="prefEmailJsTemplateId" placeholder="e.g. template_xxx" onchange="saveNotificationPrefs()">
+          <span style="font-size: 0.72rem; color: var(--text-muted); margin-top: 2px;">Sends automated event alert emails directly to your inbox via EmailJS.</span>
         </div>
 
         <div class="form-group" style="margin-top: 10px;">
@@ -540,8 +566,8 @@
             <input type="text" id="time" placeholder="e.g. 11:59 pm" required>
           </div>
           <div class="form-group">
-            <label for="smsReminderSelect">📱 Mobile SMS Reminder Override</label>
-            <select id="smsReminderSelect">
+            <label for="emailReminderSelect">📧 Email Reminder Override</label>
+            <select id="emailReminderSelect">
               <option value="default">Use Left Sidebar Preset</option>
               <option value="0">No Reminder</option>
               <option value="5">5 minutes before</option>
@@ -586,8 +612,8 @@
           <strong id="modalDateTime">Oct 16, 2026 | 7:00 PM</strong>
         </div>
         <div class="glass-box">
-          <span>📱 Mobile Alert Lead Time</span>
-          <strong id="modalSmsReminderTxt">15 Minutes Before</strong>
+          <span>📧 Email Alert Lead Time</span>
+          <strong id="modalEmailReminderTxt">15 Minutes Before</strong>
         </div>
         <div class="glass-box">
           <span>📍 Location / Room</span>
@@ -608,11 +634,11 @@
     </div>
   </div>
 
-  <!-- Simulated Mobile SMS Alert Banner -->
+  <!-- Notification Simulation Toast -->
   <div class="sms-toast" id="smsToast">
-    <div style="font-size: 1.4rem;">💬</div>
+    <div style="font-size: 1.4rem;">📧</div>
     <div>
-      <div style="font-weight: 700; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;" id="smsToastPhone">SMS Sent to (555) 000-0000</div>
+      <div style="font-weight: 700; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;" id="smsToastPhone">Email Sent to student@ccu.edu</div>
       <div style="color: #f8fafc; font-weight: 600; margin-top: 2px;" id="smsToastMessage">Reminder: Upcoming Class in 15 minutes!</div>
     </div>
   </div>
@@ -644,6 +670,57 @@
       { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", reminderMinutes: "1440", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" }
     ];
 
+    /* --- ICAL (.ICS) EXPORT FOR DIRECT PHONE CALENDAR SYNC --- */
+    function exportToIcsFile() {
+      const events = loadMasterEvents();
+      if (!events || events.length === 0) return alert('No events to export!');
+
+      let icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//CCU Academic Calendar//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH'
+      ];
+
+      events.forEach(ev => {
+        if (!ev.date) return;
+        const cleanDate = ev.date.replace(/-/g, '');
+        const startTime24 = parseTimeStringTo24Hour(ev.time).replace(/:/g, '');
+        
+        const dtStart = `${cleanDate}T${startTime24}`;
+        const leadMins = parseInt(ev.reminderMinutes || '15', 10);
+
+        icsContent.push('BEGIN:VEVENT');
+        icsContent.push(`SUMMARY:${ev.title || 'CCU Event'}`);
+        icsContent.push(`DTSTART:${dtStart}`);
+        icsContent.push(`LOCATION:${ev.location || 'CCU Campus'}`);
+        icsContent.push(`DESCRIPTION:CCU Academic Calendar - ${ev.source || 'Schedule'}`);
+        
+        if (leadMins > 0) {
+          icsContent.push('BEGIN:VALARM');
+          icsContent.push('ACTION:DISPLAY');
+          icsContent.push(`DESCRIPTION:Reminder: ${ev.title}`);
+          icsContent.push(`TRIGGER:-PT${leadMins}M`);
+          icsContent.push('END:VALARM');
+        }
+        
+        icsContent.push('END:VEVENT');
+      });
+
+      icsContent.push('END:VCALENDAR');
+
+      const blob = new Blob([icsContent.join('\r\n')], { type: 'text/calendar;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', 'CCU_Academic_Schedule.ics');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      alert('📥 Calendar exported! Open "CCU_Academic_Schedule.ics" on your phone to add all events & lock-screen alarms directly to your iPhone / Android calendar.');
+    }
+
     /* --- NOTIFICATION PREFERENCES MANAGEMENT --- */
     function getNotificationPrefs() {
       const stored = localStorage.getItem('ccu_notification_prefs');
@@ -651,10 +728,13 @@
         try { return JSON.parse(stored); } catch (e) {}
       }
       return {
-        smsEnabled: true,
+        emailEnabled: true,
         browserEnabled: false,
         toastEnabled: true,
-        phone: '',
+        email: '',
+        emailjsPublicKey: '',
+        emailjsServiceId: '',
+        emailjsTemplateId: '',
         classLeadTime: '15',
         assignmentLeadTime: '1440',
         eventLeadTime: '60'
@@ -665,10 +745,13 @@
       const prefs = getNotificationPrefs();
       const account = JSON.parse(localStorage.getItem('ccu_user_account') || '{}');
 
-      document.getElementById('prefSmsToggle').checked = prefs.smsEnabled;
+      document.getElementById('prefEmailToggle').checked = prefs.emailEnabled;
       document.getElementById('prefBrowserToggle').checked = prefs.browserEnabled;
       document.getElementById('prefToastToggle').checked = prefs.toastEnabled;
-      document.getElementById('prefPhoneInput').value = prefs.phone || account.phone || '';
+      document.getElementById('prefEmailInput').value = prefs.email || account.email || '';
+      document.getElementById('prefEmailJsPublicKey').value = prefs.emailjsPublicKey || '';
+      document.getElementById('prefEmailJsServiceId').value = prefs.emailjsServiceId || '';
+      document.getElementById('prefEmailJsTemplateId').value = prefs.emailjsTemplateId || '';
       document.getElementById('prefClassLeadTime').value = prefs.classLeadTime || '15';
       document.getElementById('prefAssignmentLeadTime').value = prefs.assignmentLeadTime || '1440';
       document.getElementById('prefEventLeadTime').value = prefs.eventLeadTime || '60';
@@ -676,10 +759,13 @@
 
     function saveNotificationPrefs() {
       const prefs = {
-        smsEnabled: document.getElementById('prefSmsToggle').checked,
+        emailEnabled: document.getElementById('prefEmailToggle').checked,
         browserEnabled: document.getElementById('prefBrowserToggle').checked,
         toastEnabled: document.getElementById('prefToastToggle').checked,
-        phone: document.getElementById('prefPhoneInput').value.trim(),
+        email: document.getElementById('prefEmailInput').value.trim(),
+        emailjsPublicKey: document.getElementById('prefEmailJsPublicKey').value.trim(),
+        emailjsServiceId: document.getElementById('prefEmailJsServiceId').value.trim(),
+        emailjsTemplateId: document.getElementById('prefEmailJsTemplateId').value.trim(),
         classLeadTime: document.getElementById('prefClassLeadTime').value,
         assignmentLeadTime: document.getElementById('prefAssignmentLeadTime').value,
         eventLeadTime: document.getElementById('prefEventLeadTime').value
@@ -687,10 +773,10 @@
       localStorage.setItem('ccu_notification_prefs', JSON.stringify(prefs));
 
       const account = JSON.parse(localStorage.getItem('ccu_user_account') || '{}');
-      if (prefs.phone && account.phone !== prefs.phone) {
-        account.phone = prefs.phone;
+      if (prefs.email && account.email !== prefs.email) {
+        account.email = prefs.email;
         localStorage.setItem('ccu_user_account', JSON.stringify(account));
-        document.getElementById('userPhoneDisplay').textContent = `📱 ${prefs.phone}`;
+        document.getElementById('userEmailDisplay').textContent = `📧 ${prefs.email}`;
       }
     }
 
@@ -717,8 +803,8 @@
 
     function sendTestNotification() {
       const prefs = getNotificationPrefs();
-      const phone = prefs.phone || 'Your Phone Number';
-      sendSmsNotification(phone, "🧪 Test Alert: Your CCU Academic Calendar notification settings are configured successfully!");
+      const email = prefs.email || 'Your Email Address';
+      sendEmailNotification(email, "🧪 Test Alert: Your CCU Academic Calendar notification settings are configured successfully!");
     }
 
     /* --- AUTHENTICATION & LOGIN FLOW --- */
@@ -730,7 +816,7 @@
       const signUpCard = document.getElementById('signUpCard');
       const loginCard = document.getElementById('loginCard');
       const userBadge = document.getElementById('userBadge');
-      const userPhoneDisplay = document.getElementById('userPhoneDisplay');
+      const userEmailDisplay = document.getElementById('userEmailDisplay');
 
       if (!userAccount) {
         authModal.style.display = 'flex';
@@ -746,19 +832,19 @@
         authModal.style.display = 'none';
         userBadge.style.display = 'inline-flex';
         const account = JSON.parse(userAccount);
-        userPhoneDisplay.textContent = `📱 ${account.phone}`;
+        userEmailDisplay.textContent = `📧 ${account.email}`;
         loadNotificationPrefsIntoUI();
       }
     }
 
     document.getElementById('signUpForm').addEventListener('submit', function(e) {
       e.preventDefault();
-      const phone = document.getElementById('regPhone').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
       const pass = document.getElementById('regPass').value.trim();
 
-      if (!phone || !pass) return;
+      if (!email || !pass) return;
 
-      const accountData = { phone: phone, pass: pass, createdAt: new Date().toISOString() };
+      const accountData = { email: email, pass: pass, createdAt: new Date().toISOString() };
       localStorage.setItem('ccu_user_account', JSON.stringify(accountData));
       sessionStorage.setItem('ccu_logged_in', 'true');
 
@@ -785,7 +871,7 @@
       checkAuthentication();
     }
 
-    /* --- MOBILE & DESKTOP NOTIFICATION SENDER --- */
+    /* --- DIRECT EMAILJS NOTIFICATION DISPATCHER --- */
     function formatReminderMinutes(mins) {
       const m = parseInt(mins, 10);
       if (isNaN(m) || m === 0) return 'No Reminder Set';
@@ -801,22 +887,38 @@
       return `${m} Minutes Before`;
     }
 
-    function sendSmsNotification(phone, message) {
+    function sendEmailNotification(email, message) {
       const prefs = getNotificationPrefs();
 
-      // 1. In-App Pop-up Toast
+      // EmailJS Direct Email Dispatch
+      if (prefs.emailEnabled && email && prefs.emailjsPublicKey && prefs.emailjsServiceId && prefs.emailjsTemplateId) {
+        try {
+          emailjs.init(prefs.emailjsPublicKey);
+          
+          emailjs.send(prefs.emailjsServiceId, prefs.emailjsTemplateId, {
+            to_email: email,
+            message: message,
+            user_email: email
+          }).then(() => console.log(`EmailJS alert sent to ${email}`))
+            .catch(err => console.error('EmailJS Send Error:', err));
+        } catch(err) {
+          console.error('EmailJS Init Error:', err);
+        }
+      }
+
+      // In-App Pop-up Toast
       if (prefs.toastEnabled) {
         const toast = document.getElementById('smsToast');
-        document.getElementById('smsToastPhone').textContent = `SMS Alert (${phone})`;
+        document.getElementById('smsToastPhone').textContent = `Email Sent to ${email}`;
         document.getElementById('smsToastMessage').textContent = message;
 
         toast.classList.add('active');
         setTimeout(() => toast.classList.remove('active'), 6500);
       }
 
-      // 2. Desktop Push Notification
+      // Desktop Push Notification
       if (prefs.browserEnabled && 'Notification' in window && Notification.permission === 'granted') {
-        new Notification(`📱 CCU Alert (${phone})`, { body: message, icon: 'https://www.ccu.edu/favicon.ico' });
+        new Notification(`📧 CCU Alert (${email})`, { body: message, icon: 'https://www.ccu.edu/favicon.ico' });
       }
     }
 
@@ -824,7 +926,7 @@
       const events = loadMasterEvents();
       const prefs = getNotificationPrefs();
       const userAccount = JSON.parse(localStorage.getItem('ccu_user_account') || '{}');
-      const phone = prefs.phone || userAccount.phone || 'Your Phone';
+      const email = prefs.email || userAccount.email || 'Your Email';
       const now = new Date();
 
       events.forEach(ev => {
@@ -836,7 +938,7 @@
         const reminderTime = new Date(eventDateTime.getTime() - parseInt(ev.reminderMinutes, 10) * 60000);
 
         if (now >= reminderTime && now <= eventDateTime) {
-          sendSmsNotification(phone, `Reminder: "${ev.title}" starts in ${formatReminderMinutes(ev.reminderMinutes)}! (${formatTimeTo12Hour(ev.time)})`);
+          sendEmailNotification(email, `Reminder: "${ev.title}" starts in ${formatReminderMinutes(ev.reminderMinutes)}! (${formatTimeTo12Hour(ev.time)})`);
           ev.reminderFired = true;
           saveMasterEvents(events);
         }
@@ -1014,7 +1116,7 @@
       const badge = document.getElementById('modalBadge');
       const title = document.getElementById('modalTitle');
       const dateTime = document.getElementById('modalDateTime');
-      const smsReminderTxt = document.getElementById('modalSmsReminderTxt');
+      const modalEmailReminderTxt = document.getElementById('modalEmailReminderTxt');
       const location = document.getElementById('modalLocation');
       const source = document.getElementById('modalSource');
       const linkBtn = document.getElementById('modalLinkBtn');
@@ -1030,7 +1132,7 @@
       const formattedDate = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
       dateTime.textContent = `${formattedDate} • ⏰ ${formatTimeTo12Hour(ev.time)}`;
       
-      smsReminderTxt.textContent = formatReminderMinutes(ev.reminderMinutes || 15);
+      modalEmailReminderTxt.textContent = formatReminderMinutes(ev.reminderMinutes || 15);
       location.textContent = unescapeIcsText(ev.location) || 'CCU Campus / Online';
       source.textContent = unescapeIcsText(ev.source) || ev.link || 'Custom Entry';
 
@@ -1539,141 +1641,4 @@
         const dayNum = document.createElement('div');
         dayNum.className = 'day-number';
         dayNum.innerHTML = `<span>${day}</span>${isToday ? '<span class="today-badge">Today</span>' : ''}`;
-        dayDiv.appendChild(dayNum);
-
-        const eventsContainer = document.createElement('div');
-        eventsContainer.className = 'events-container';
-
-        dayEvents.forEach(e => {
-          const key = getEventKey(e);
-          const pill = document.createElement('div');
-          const cat = e.category || 'ccu';
-          const isPillMatch = !useFilter || eventMatchesFilter(e, selectedSourceFilter);
-          
-          pill.className = `event-pill ${cat} ${!isPillMatch ? 'dimmed-pill' : ''}`;
-          const icon = cat === 'project' ? '🟥 ' : cat === 'classtime' || cat === 'brightspace' || cat === 'file' ? '🟦 ' : '🟨 ';
-          pill.textContent = icon + e.title;
-          pill.title = `${e.title} (${formatTimeTo12Hour(e.time)}) - Click for details`;
-          pill.onclick = (evt) => {
-            evt.stopPropagation();
-            openEventModal(key);
-          };
-          
-          eventsContainer.appendChild(pill);
-        });
-
-        dayDiv.appendChild(eventsContainer);
-        grid.appendChild(dayDiv);
-      }
-
-      const currentMonthPrefix = `${year}-${(month + 1) < 10 ? '0' + (month + 1) : month + 1}`;
-      const monthEvents = activeEvents.filter(e => e.date && e.date.startsWith(currentMonthPrefix)).sort((a, b) => a.date.localeCompare(b.date));
-
-      if (monthEvents.length === 0) {
-        list.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 20px 0;">No events scheduled for this month.</div>';
-      } else {
-        monthEvents.forEach(e => {
-          const key = getEventKey(e);
-          const item = document.createElement('div');
-          const cat = e.category || 'ccu';
-          const isItemMatch = !useFilter || eventMatchesFilter(e, selectedSourceFilter);
-          item.className = `event-item ${cat} ${!isItemMatch ? 'dimmed-item' : ''}`;
-          
-          const eventDateObj = new Date(e.date + 'T00:00:00');
-          const dateFormatted = eventDateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-          const label = cat === 'project' ? 'DUE / PROJECT' : cat === 'classtime' || cat === 'brightspace' || cat === 'file' ? 'CLASS / FILE' : 'SCHOOL EVENT';
-
-          item.onclick = () => openEventModal(key);
-
-          item.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; width: 100%;">
-              <div class="event-title" style="flex: 1;">
-                <span class="badge ${cat}">${label}</span> ${e.title}
-              </div>
-              <button class="btn btn-danger" style="padding: 3px 8px; font-size: 0.72rem; flex-shrink: 0;" onclick="deleteSingleEventByKey('${key}', event)" title="Remove this item">🗑️ Remove</button>
-            </div>
-            <div class="event-meta">📅 ${dateFormatted}, ${year} &nbsp;|&nbsp; ⏰ ${formatTimeTo12Hour(e.time)}</div>
-            <div class="event-meta">📍 ${unescapeIcsText(e.location) || 'CCU Campus / Online'}</div>
-          `;
-          list.appendChild(item);
-        });
-      }
-    }
-
-    document.getElementById('classScheduleForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const title = document.getElementById('classTitle').value;
-      const time = document.getElementById('classTime').value;
-      const location = document.getElementById('classLocation').value || 'CCU Campus';
-      const termStart = new Date(document.getElementById('termStart').value + 'T00:00:00');
-      const termEnd = new Date(document.getElementById('termEnd').value + 'T00:00:00');
-      const selectedDays = Array.from(document.querySelectorAll('input[name="days"]:checked')).map(cb => parseInt(cb.value));
-      const prefs = getNotificationPrefs();
-
-      if (selectedDays.length === 0) return alert('Please select at least one meeting day.');
-
-      const masterList = loadMasterEvents();
-      let added = 0;
-      for (let d = new Date(termStart); d <= termEnd; d.setDate(d.getDate() + 1)) {
-        if (selectedDays.includes(d.getDay())) {
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, '0');
-          const dayNum = String(d.getDate()).padStart(2, '0');
-          masterList.push({
-            date: `${y}-${m}-${dayNum}`, title: title, category: 'classtime', reminderMinutes: prefs.classLeadTime, time: formatTimeTo12Hour(time), location: location,
-            link: 'https://selfservice.ccu.edu/Student/Planning/DegreePlans', source: 'Self-Service'
-          });
-          added++;
-        }
-      }
-
-      saveMasterEvents(masterList);
-      alert(`Generated ${added} weekly class sessions!`);
-      renderCalendar();
-      this.reset();
-    });
-
-    document.getElementById('eventForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      const category = document.getElementById('category').value;
-      const overrideReminder = document.getElementById('smsReminderSelect').value;
-      const prefs = getNotificationPrefs();
-
-      let finalLeadTime = overrideReminder;
-      if (overrideReminder === 'default') {
-        finalLeadTime = category === 'classtime' ? prefs.classLeadTime : category === 'project' ? prefs.assignmentLeadTime : prefs.eventLeadTime;
-      }
-
-      const newEvent = {
-        date: document.getElementById('date').value,
-        title: document.getElementById('title').value,
-        category: category,
-        time: formatTimeTo12Hour(document.getElementById('time').value),
-        reminderMinutes: finalLeadTime,
-        location: document.getElementById('location').value || 'CCU Campus / Online',
-        link: document.getElementById('link').value || 'https://mycourses.ccu.edu',
-        source: document.getElementById('link').value || 'User Entry'
-      };
-
-      const masterList = loadMasterEvents();
-      masterList.push(newEvent);
-      saveMasterEvents(masterList);
-
-      if (newEvent.date) {
-        const [y, m] = newEvent.date.split('-');
-        currentDate = new Date(parseInt(y), parseInt(m) - 1, 1);
-      }
-
-      renderCalendar();
-      this.reset();
-    });
-
-    // Initialize Page Flow
-    checkAuthentication();
-    initTheme();
-    populateSourceFilterDropdown();
-    renderCalendar();
-    document.getElementById('date').valueAsDate = new Date();
-  </script>
-</body>
-</html>
+        dayDiv
