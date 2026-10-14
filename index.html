@@ -71,7 +71,7 @@
 
     .status-bar {
       display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px;
-      background: var(--card-bg); border-radius: 10px; padding: 12px 20px; max-width: 1300px;
+      background: var(--card-bg); border-radius: 10px; padding: 12px 20px; max-width: 1450px;
       margin: 0 auto 20px auto; font-size: 0.9rem; border-left: 5px solid var(--accent);
       box-shadow: 0 4px 12px var(--shadow); transition: background 0.3s;
     }
@@ -109,8 +109,22 @@
     .filter-bar label { font-size: 0.85rem; font-weight: 600; color: var(--text); }
     .toggle-switch { display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
 
-    .container { display: grid; grid-template-columns: 1fr 360px; gap: 20px; max-width: 1300px; margin: 0 auto; }
-    @media (max-width: 980px) { .container { grid-template-columns: 1fr; } }
+    /* 3-Column Responsive Grid with Left Sidebar */
+    .container {
+      display: grid;
+      grid-template-columns: 310px 1fr 340px;
+      gap: 20px;
+      max-width: 1450px;
+      margin: 0 auto;
+    }
+    @media (max-width: 1200px) {
+      .container { grid-template-columns: 1fr 340px; }
+      .sidebar-left { order: 3; grid-column: span 2; }
+    }
+    @media (max-width: 820px) {
+      .container { grid-template-columns: 1fr; }
+      .sidebar-left { order: 0; grid-column: span 1; }
+    }
 
     .card { background: var(--card-bg); border-radius: 10px; padding: 20px; box-shadow: 0 4px 12px var(--shadow); transition: background 0.3s; }
     .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
@@ -118,7 +132,7 @@
     .month-nav { display: flex; gap: 8px; align-items: center; }
 
     .calendar-viewport { overflow: auto; max-width: 100%; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); padding: 10px; max-height: 75vh; }
-    .calendar-content-zoom { transform-origin: top left; transition: transform 0.15s ease-out; min-width: 680px; }
+    .calendar-content-zoom { transform-origin: top left; transition: transform 0.15s ease-out; min-width: 620px; }
 
     .weekdays { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); text-align: center; font-weight: 700; color: var(--primary); padding-bottom: 10px; border-bottom: 2px solid var(--border); font-size: 0.95rem; }
     .days-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-top: 10px; }
@@ -170,6 +184,9 @@
     input, select, button { padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; background: var(--input-bg); color: var(--text); font-size: 0.88rem; }
     input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); }
     button.submit-btn { background: var(--primary); color: #ffffff; border: none; font-weight: 700; cursor: pointer; margin-top: 5px; }
+
+    /* Notification Sidebar Specific Styling */
+    .sidebar-section-title { font-size: 0.82rem; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 10px; margin-bottom: 6px; }
 
     /* Glassmorphism Modal */
     .modal-overlay {
@@ -318,6 +335,78 @@
   </div>
 
   <div class="container">
+
+    <!-- LEFT SIDEBAR: NOTIFICATION SETTINGS & CUSTOM LEAD TIMES -->
+    <div class="sidebar sidebar-left">
+      <div class="card">
+        <h2>🔔 Notification Settings</h2>
+        
+        <div class="sidebar-section-title">1. Delivery Methods (Where)</div>
+        <div class="form-group">
+          <label class="toggle-switch">
+            <input type="checkbox" id="prefSmsToggle" onchange="saveNotificationPrefs()" checked>
+            📱 SMS Text Messages
+          </label>
+          <input type="tel" id="prefPhoneInput" placeholder="Mobile Phone #" onchange="saveNotificationPrefs()" style="margin-top: 4px;">
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+          <label class="toggle-switch">
+            <input type="checkbox" id="prefBrowserToggle" onchange="toggleBrowserPushPermission()">
+            🔔 Desktop Push Notifications
+          </label>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+          <label class="toggle-switch">
+            <input type="checkbox" id="prefToastToggle" onchange="saveNotificationPrefs()" checked>
+            💻 In-App Pop-up Banners
+          </label>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--border); margin: 16px 0 12px 0;">
+
+        <div class="sidebar-section-title">2. Alert Timers (How Long Before)</div>
+        
+        <div class="form-group">
+          <label for="prefClassLeadTime">🟦 Weekly Class Sessions</label>
+          <select id="prefClassLeadTime" onchange="saveNotificationPrefs()">
+            <option value="5">5 Minutes Before Class</option>
+            <option value="10">10 Minutes Before Class</option>
+            <option value="15" selected>15 Minutes Before Class</option>
+            <option value="30">30 Minutes Before Class</option>
+            <option value="60">1 Hour Before Class</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+          <label for="prefAssignmentLeadTime">🟥 Assignments & Projects</label>
+          <select id="prefAssignmentLeadTime" onchange="saveNotificationPrefs()">
+            <option value="60">1 Hour Before Due</option>
+            <option value="120">2 Hours Before Due</option>
+            <option value="720">12 Hours Before Due</option>
+            <option value="1440" selected>1 Day Before Due</option>
+            <option value="2880">2 Days Before Due</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-top: 10px;">
+          <label for="prefEventLeadTime">🟨 Campus Events</label>
+          <select id="prefEventLeadTime" onchange="saveNotificationPrefs()">
+            <option value="15">15 Minutes Before</option>
+            <option value="30">30 Minutes Before</option>
+            <option value="60" selected>1 Hour Before</option>
+            <option value="1440">1 Day Before</option>
+          </select>
+        </div>
+
+        <button class="btn btn-secondary" style="width: 100%; margin-top: 16px; justify-content: center;" onclick="sendTestNotification()">
+          🧪 Send Test Alert Now
+        </button>
+      </div>
+    </div>
+
+    <!-- MAIN CALENDAR VIEW -->
     <div class="card">
       <div class="filter-bar">
         <div class="filter-bar-group">
@@ -354,6 +443,7 @@
       </div>
     </div>
 
+    <!-- RIGHT SIDEBAR: TOOLS & SCHEDULE ENTRY -->
     <div class="sidebar">
       <div class="card" style="margin-bottom: 20px;">
         <h2>Scan File for Dates & Schedule</h2>
@@ -450,11 +540,13 @@
             <input type="text" id="time" placeholder="e.g. 11:59 pm" required>
           </div>
           <div class="form-group">
-            <label for="smsReminderSelect">📱 Mobile SMS Reminder</label>
+            <label for="smsReminderSelect">📱 Mobile SMS Reminder Override</label>
             <select id="smsReminderSelect">
+              <option value="default">Use Left Sidebar Preset</option>
               <option value="0">No Reminder</option>
+              <option value="5">5 minutes before</option>
               <option value="15">15 minutes before</option>
-              <option value="30" selected>30 minutes before</option>
+              <option value="30">30 minutes before</option>
               <option value="60">1 hour before</option>
               <option value="120">2 hours before</option>
               <option value="1440">1 day before</option>
@@ -494,8 +586,8 @@
           <strong id="modalDateTime">Oct 16, 2026 | 7:00 PM</strong>
         </div>
         <div class="glass-box">
-          <span>📱 Mobile SMS Alert Setting</span>
-          <strong id="modalSmsReminderTxt">30 Minutes Before</strong>
+          <span>📱 Mobile Alert Lead Time</span>
+          <strong id="modalSmsReminderTxt">15 Minutes Before</strong>
         </div>
         <div class="glass-box">
           <span>📍 Location / Room</span>
@@ -521,7 +613,7 @@
     <div style="font-size: 1.4rem;">💬</div>
     <div>
       <div style="font-weight: 700; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase;" id="smsToastPhone">SMS Sent to (555) 000-0000</div>
-      <div style="color: #f8fafc; font-weight: 600; margin-top: 2px;" id="smsToastMessage">Reminder: Upcoming Class in 30 minutes!</div>
+      <div style="color: #f8fafc; font-weight: 600; margin-top: 2px;" id="smsToastMessage">Reminder: Upcoming Class in 15 minutes!</div>
     </div>
   </div>
 
@@ -552,6 +644,83 @@
       { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", reminderMinutes: "1440", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" }
     ];
 
+    /* --- NOTIFICATION PREFERENCES MANAGEMENT --- */
+    function getNotificationPrefs() {
+      const stored = localStorage.getItem('ccu_notification_prefs');
+      if (stored) {
+        try { return JSON.parse(stored); } catch (e) {}
+      }
+      return {
+        smsEnabled: true,
+        browserEnabled: false,
+        toastEnabled: true,
+        phone: '',
+        classLeadTime: '15',
+        assignmentLeadTime: '1440',
+        eventLeadTime: '60'
+      };
+    }
+
+    function loadNotificationPrefsIntoUI() {
+      const prefs = getNotificationPrefs();
+      const account = JSON.parse(localStorage.getItem('ccu_user_account') || '{}');
+
+      document.getElementById('prefSmsToggle').checked = prefs.smsEnabled;
+      document.getElementById('prefBrowserToggle').checked = prefs.browserEnabled;
+      document.getElementById('prefToastToggle').checked = prefs.toastEnabled;
+      document.getElementById('prefPhoneInput').value = prefs.phone || account.phone || '';
+      document.getElementById('prefClassLeadTime').value = prefs.classLeadTime || '15';
+      document.getElementById('prefAssignmentLeadTime').value = prefs.assignmentLeadTime || '1440';
+      document.getElementById('prefEventLeadTime').value = prefs.eventLeadTime || '60';
+    }
+
+    function saveNotificationPrefs() {
+      const prefs = {
+        smsEnabled: document.getElementById('prefSmsToggle').checked,
+        browserEnabled: document.getElementById('prefBrowserToggle').checked,
+        toastEnabled: document.getElementById('prefToastToggle').checked,
+        phone: document.getElementById('prefPhoneInput').value.trim(),
+        classLeadTime: document.getElementById('prefClassLeadTime').value,
+        assignmentLeadTime: document.getElementById('prefAssignmentLeadTime').value,
+        eventLeadTime: document.getElementById('prefEventLeadTime').value
+      };
+      localStorage.setItem('ccu_notification_prefs', JSON.stringify(prefs));
+
+      const account = JSON.parse(localStorage.getItem('ccu_user_account') || '{}');
+      if (prefs.phone && account.phone !== prefs.phone) {
+        account.phone = prefs.phone;
+        localStorage.setItem('ccu_user_account', JSON.stringify(account));
+        document.getElementById('userPhoneDisplay').textContent = `📱 ${prefs.phone}`;
+      }
+    }
+
+    function toggleBrowserPushPermission() {
+      const toggle = document.getElementById('prefBrowserToggle');
+      if (toggle.checked) {
+        if ('Notification' in window) {
+          Notification.requestPermission().then(permission => {
+            if (permission !== 'granted') {
+              alert('Browser notification permission was denied.');
+              toggle.checked = false;
+            }
+            saveNotificationPrefs();
+          });
+        } else {
+          alert('Desktop Push Notifications are not supported in this browser.');
+          toggle.checked = false;
+          saveNotificationPrefs();
+        }
+      } else {
+        saveNotificationPrefs();
+      }
+    }
+
+    function sendTestNotification() {
+      const prefs = getNotificationPrefs();
+      const phone = prefs.phone || 'Your Phone Number';
+      sendSmsNotification(phone, "🧪 Test Alert: Your CCU Academic Calendar notification settings are configured successfully!");
+    }
+
     /* --- AUTHENTICATION & LOGIN FLOW --- */
     function checkAuthentication() {
       const userAccount = localStorage.getItem('ccu_user_account');
@@ -578,9 +747,7 @@
         userBadge.style.display = 'inline-flex';
         const account = JSON.parse(userAccount);
         userPhoneDisplay.textContent = `📱 ${account.phone}`;
-        if ('Notification' in window && Notification.permission !== 'granted') {
-          Notification.requestPermission();
-        }
+        loadNotificationPrefsIntoUI();
       }
     }
 
@@ -595,6 +762,7 @@
       localStorage.setItem('ccu_user_account', JSON.stringify(accountData));
       sessionStorage.setItem('ccu_logged_in', 'true');
 
+      saveNotificationPrefs();
       checkAuthentication();
     });
 
@@ -617,37 +785,46 @@
       checkAuthentication();
     }
 
-    /* --- MOBILE SMS NOTIFICATION SYSTEM --- */
+    /* --- MOBILE & DESKTOP NOTIFICATION SENDER --- */
     function formatReminderMinutes(mins) {
       const m = parseInt(mins, 10);
-      if (!m || m === 0) return 'No Reminder Set';
+      if (isNaN(m) || m === 0) return 'No Reminder Set';
+      if (m === 5) return '5 Minutes Before';
+      if (m === 10) return '10 Minutes Before';
       if (m === 15) return '15 Minutes Before';
       if (m === 30) return '30 Minutes Before';
       if (m === 60) return '1 Hour Before';
       if (m === 120) return '2 Hours Before';
+      if (m === 720) return '12 Hours Before';
       if (m === 1440) return '1 Day Before';
+      if (m === 2880) return '2 Days Before';
       return `${m} Minutes Before`;
     }
 
     function sendSmsNotification(phone, message) {
-      // 1. On-Screen Mobile Toast Banner Simulation
-      const toast = document.getElementById('smsToast');
-      document.getElementById('smsToastPhone').textContent = `SMS Sent to ${phone}`;
-      document.getElementById('smsToastMessage').textContent = message;
+      const prefs = getNotificationPrefs();
 
-      toast.classList.add('active');
-      setTimeout(() => toast.classList.remove('active'), 6000);
+      // 1. In-App Pop-up Toast
+      if (prefs.toastEnabled) {
+        const toast = document.getElementById('smsToast');
+        document.getElementById('smsToastPhone').textContent = `SMS Alert (${phone})`;
+        document.getElementById('smsToastMessage').textContent = message;
 
-      // 2. Browser Native Push Notification
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification(`📱 Calendar SMS Alert (${phone})`, { body: message, icon: 'https://www.ccu.edu/favicon.ico' });
+        toast.classList.add('active');
+        setTimeout(() => toast.classList.remove('active'), 6500);
+      }
+
+      // 2. Desktop Push Notification
+      if (prefs.browserEnabled && 'Notification' in window && Notification.permission === 'granted') {
+        new Notification(`📱 CCU Alert (${phone})`, { body: message, icon: 'https://www.ccu.edu/favicon.ico' });
       }
     }
 
     function monitorUpcomingReminders() {
       const events = loadMasterEvents();
+      const prefs = getNotificationPrefs();
       const userAccount = JSON.parse(localStorage.getItem('ccu_user_account') || '{}');
-      const phone = userAccount.phone || 'Your Phone';
+      const phone = prefs.phone || userAccount.phone || 'Your Phone';
       const now = new Date();
 
       events.forEach(ev => {
@@ -681,7 +858,7 @@
       return '09:00:00';
     }
 
-    setInterval(monitorUpcomingReminders, 30000);
+    setInterval(monitorUpcomingReminders, 25000);
 
     /* --- CALENDAR LOGIC --- */
     function formatTimeTo12Hour(timeStr) {
@@ -853,7 +1030,7 @@
       const formattedDate = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
       dateTime.textContent = `${formattedDate} • ⏰ ${formatTimeTo12Hour(ev.time)}`;
       
-      smsReminderTxt.textContent = formatReminderMinutes(ev.reminderMinutes || 30);
+      smsReminderTxt.textContent = formatReminderMinutes(ev.reminderMinutes || 15);
       location.textContent = unescapeIcsText(ev.location) || 'CCU Campus / Online';
       source.textContent = unescapeIcsText(ev.source) || ev.link || 'Custom Entry';
 
@@ -889,6 +1066,7 @@
       const file = files[0];
       const fileName = file.name;
       const status = document.getElementById('fileScanStatus');
+      const prefs = getNotificationPrefs();
       status.textContent = `Scanning file "${fileName}"...`;
 
       const reader = new FileReader();
@@ -904,7 +1082,7 @@
 
           lines.forEach(line => {
             if (line.startsWith('BEGIN:VEVENT')) {
-              currentEvent = { category: 'classtime', reminderMinutes: '30', source: `File: ${fileName}`, link: `File: ${fileName}` };
+              currentEvent = { category: 'classtime', reminderMinutes: prefs.classLeadTime, source: `File: ${fileName}`, link: `File: ${fileName}` };
             } else if (line.startsWith('END:VEVENT')) {
               if (currentEvent && currentEvent.title && currentEvent.date) {
                 masterList.push(currentEvent);
@@ -939,7 +1117,7 @@
                   date: formattedDate,
                   title: `${fileName.replace(/\.[^/.]+$/, "")} Session`,
                   category: "classtime",
-                  reminderMinutes: "30",
+                  reminderMinutes: prefs.classLeadTime,
                   time: "File Schedule Item",
                   location: `File: ${fileName}`,
                   link: `File: ${fileName}`,
@@ -968,6 +1146,7 @@
       const btn = document.getElementById('scrapeBtn');
       const spinner = document.getElementById('scrapeSpinner');
       const status = document.getElementById('scraperStatus');
+      const prefs = getNotificationPrefs();
 
       btn.disabled = true;
       spinner.style.display = 'inline-block';
@@ -1006,7 +1185,7 @@
                       date: formattedDate,
                       title: pageTitle,
                       category: "ccu",
-                      reminderMinutes: "60",
+                      reminderMinutes: prefs.eventLeadTime,
                       time: "Web Event",
                       location: new URL(url).hostname,
                       link: url,
@@ -1082,6 +1261,7 @@
       if (!text.trim()) return alert('Please paste schedule text.');
 
       const masterList = loadMasterEvents();
+      const prefs = getNotificationPrefs();
       const rawLines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
 
       let chunks = [];
@@ -1183,7 +1363,7 @@
                 date: `${y}-${m}-${dayNum}`,
                 title: title + (instructor ? ` (${instructor})` : ''),
                 category: 'classtime',
-                reminderMinutes: '15',
+                reminderMinutes: prefs.classLeadTime,
                 time: timeStr || 'Class Session',
                 location: location,
                 link: 'https://selfservice.ccu.edu/Student/Planning/DegreePlans',
@@ -1198,7 +1378,7 @@
             date: startDateStr || "2026-10-15",
             title: title + (instructor ? ` (${instructor})` : ''),
             category: "classtime",
-            reminderMinutes: "15",
+            reminderMinutes: prefs.classLeadTime,
             time: timeStr || "Scheduled Class",
             location: location,
             source: "Self-Service"
@@ -1219,6 +1399,7 @@
       const syncSpinner = document.getElementById('syncSpinner');
       const syncBtnText = document.getElementById('syncBtnText');
       const statusEl = document.getElementById('lastUpdated');
+      const prefs = getNotificationPrefs();
 
       syncBtn.disabled = true;
       syncSpinner.style.display = 'inline-block';
@@ -1240,7 +1421,9 @@
                 if (item.category === 'ccu' || (item.link && item.link.includes('ccu.edu'))) {
                   item.source = CCU_UNIFIED_FILTER_KEY;
                 }
-                if (!item.reminderMinutes) item.reminderMinutes = '30';
+                if (!item.reminderMinutes) {
+                  item.reminderMinutes = item.category === 'classtime' ? prefs.classLeadTime : item.category === 'project' ? prefs.assignmentLeadTime : prefs.eventLeadTime;
+                }
                 currentList.push(item);
                 existingKeys.add(key);
                 addedCount++;
@@ -1425,6 +1608,7 @@
       const termStart = new Date(document.getElementById('termStart').value + 'T00:00:00');
       const termEnd = new Date(document.getElementById('termEnd').value + 'T00:00:00');
       const selectedDays = Array.from(document.querySelectorAll('input[name="days"]:checked')).map(cb => parseInt(cb.value));
+      const prefs = getNotificationPrefs();
 
       if (selectedDays.length === 0) return alert('Please select at least one meeting day.');
 
@@ -1436,7 +1620,7 @@
           const m = String(d.getMonth() + 1).padStart(2, '0');
           const dayNum = String(d.getDate()).padStart(2, '0');
           masterList.push({
-            date: `${y}-${m}-${dayNum}`, title: title, category: 'classtime', reminderMinutes: '15', time: formatTimeTo12Hour(time), location: location,
+            date: `${y}-${m}-${dayNum}`, title: title, category: 'classtime', reminderMinutes: prefs.classLeadTime, time: formatTimeTo12Hour(time), location: location,
             link: 'https://selfservice.ccu.edu/Student/Planning/DegreePlans', source: 'Self-Service'
           });
           added++;
@@ -1451,12 +1635,21 @@
 
     document.getElementById('eventForm').addEventListener('submit', function(e) {
       e.preventDefault();
+      const category = document.getElementById('category').value;
+      const overrideReminder = document.getElementById('smsReminderSelect').value;
+      const prefs = getNotificationPrefs();
+
+      let finalLeadTime = overrideReminder;
+      if (overrideReminder === 'default') {
+        finalLeadTime = category === 'classtime' ? prefs.classLeadTime : category === 'project' ? prefs.assignmentLeadTime : prefs.eventLeadTime;
+      }
+
       const newEvent = {
         date: document.getElementById('date').value,
         title: document.getElementById('title').value,
-        category: document.getElementById('category').value,
+        category: category,
         time: formatTimeTo12Hour(document.getElementById('time').value),
-        reminderMinutes: document.getElementById('smsReminderSelect').value,
+        reminderMinutes: finalLeadTime,
         location: document.getElementById('location').value || 'CCU Campus / Online',
         link: document.getElementById('link').value || 'https://mycourses.ccu.edu',
         source: document.getElementById('link').value || 'User Entry'
