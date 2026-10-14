@@ -83,6 +83,8 @@
     .btn-secondary:hover { opacity: 0.8; }
     .btn-danger { background: #dc2626; color: #ffffff; }
     .btn-danger:hover { background: #b91c1c; }
+    .btn-warning { background: #d97706; color: #ffffff; }
+    .btn-warning:hover { background: #b45309; }
     .theme-toggle-btn { background: var(--primary); color: #ffffff; }
 
     .spinner {
@@ -165,7 +167,7 @@
     input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); }
     button.submit-btn { background: var(--primary); color: #ffffff; border: none; font-weight: 700; cursor: pointer; margin-top: 5px; }
 
-    /* Glassmorphism Modal - Auto-Fitting & Non-Clipping */
+    /* Glassmorphism Modal */
     .modal-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0, 0, 0, 0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -224,6 +226,17 @@
     }
     .glass-btn-secondary { background: rgba(255, 255, 255, 0.1); color: #f0f4f8; border: 1px solid rgba(255, 255, 255, 0.15); }
     .glass-btn-secondary:hover { background: rgba(255, 255, 255, 0.2); }
+
+    /* Undo Toast Banner */
+    .undo-toast {
+      position: fixed; bottom: 25px; right: 25px; z-index: 2000;
+      background: #1e293b; color: #ffffff; border: 1px solid #334155;
+      border-radius: 12px; padding: 14px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      display: none; align-items: center; gap: 16px; font-size: 0.9rem;
+      animation: slideUp 0.3s ease;
+    }
+    @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    .undo-toast.active { display: flex; }
   </style>
 </head>
 <body>
@@ -255,14 +268,18 @@
       <div class="filter-bar">
         <div class="filter-bar-group">
           <label for="sourceFilterSelect">🔎 Source Filter:</label>
-          <select id="sourceFilterSelect" onchange="updateSourceFilter()" style="max-width: 320px;">
+          <select id="sourceFilterSelect" onchange="updateSourceFilter()" style="max-width: 280px;">
             <option value="">-- All Sources --</option>
           </select>
+          <button class="btn btn-secondary" onclick="clearSourceFilter()" title="Remove Filter" style="padding: 7px 10px; font-size: 0.8rem;">✖ Clear Filter</button>
         </div>
-        <label class="toggle-switch">
-          <input type="checkbox" id="filterToggle" onchange="toggleFilterState(this.checked)">
-          Gray out non-matching source dates
-        </label>
+        <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+          <label class="toggle-switch">
+            <input type="checkbox" id="filterToggle" onchange="toggleFilterState(this.checked)">
+            Gray out non-matching source dates
+          </label>
+          <button class="btn btn-danger" onclick="deleteAllEventsWithUndo()" style="padding: 6px 12px; font-size: 0.82rem;">🗑️ Wipe All Events</button>
+        </div>
       </div>
 
       <div class="calendar-header">
@@ -431,12 +448,22 @@
     </div>
   </div>
 
+  <!-- Undo Deletion Toast Banner -->
+  <div class="undo-toast" id="undoToast">
+    <span>⚠️ All calendar events wiped.</span>
+    <button class="btn btn-warning" onclick="performUndoDelete()">↩️ Undo Deletion (<span id="undoTimerTxt">180s</span>)</button>
+  </div>
+
   <script>
     let currentDate = new Date(2026, 9, 1);
     let currentZoom = 100;
     let isFilterActive = false;
     let selectedSourceFilter = '';
     let activeModalEventKey = null;
+
+    let undoBackupEvents = null;
+    let undoTimer = null;
+    let undoSecondsLeft = 180;
 
     const CCU_UNIFIED_FILTER_KEY = 'CCU Events Page (ccu.edu)';
 
@@ -457,6 +484,28 @@
       { date: "2026-10-28", title: "BIB-102: Midterm Project Review", time: "11:59 pm", location: "Brightspace Portal", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" },
       { date: "2026-11-12", title: "MGT-301: Business Group Project", time: "11:59 pm", location: "Brightspace Drop Box", link: "https://mycourses.ccu.edu", category: "project", source: "Brightspace" }
     ];
+
+    /* Convert 24-hour military strings (e.g. "19:40") to 12-hour AM/PM */
+    function formatTimeTo12Hour(timeStr) {
+      if (!timeStr) return 'All Day';
+      const str = String(timeStr).trim();
+
+      if (str.includes('-')) {
+        return str.split('-').map(p => formatTimeTo12Hour(p.trim())).join(' - ');
+      }
+
+      const match24 = str.match(/^(\d{1,2}):(\d{2})$/);
+      if (match24) {
+        let hours = parseInt(match24[1], 10);
+        const minutes = match24[2];
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        hours = hours % 12;
+        hours = hours ? hours : 12;
+        return `${hours}:${minutes} ${ampm}`;
+      }
+
+      return str;
+    }
 
     function unescapeIcsText(str) {
       if (!str) return '';
@@ -533,9 +582,62 @@
       renderCalendar();
     }
 
+    function clearSourceFilter() {
+      document.getElementById('sourceFilterSelect').value = '';
+      selectedSourceFilter = '';
+      renderCalendar();
+    }
+
     function toggleFilterState(enabled) {
       isFilterActive = enabled;
       renderCalendar();
+    }
+
+    /* Wipe All Events with 3-Minute Undo */
+    function deleteAllEventsWithUndo() {
+      const current = loadMasterEvents();
+      if (current.length === 0) return alert('Calendar is already empty.');
+
+      if (!confirm(`Are you sure you want to delete all ${current.length} calendar events? You will have 3 minutes to Undo.`)) return;
+
+      undoBackupEvents = [...current];
+      localStorage.setItem('ccu_master_calendar', JSON.stringify([]));
+
+      renderCalendar();
+      populateSourceFilterDropdown();
+      startUndoCountdown();
+    }
+
+    function startUndoCountdown() {
+      clearInterval(undoTimer);
+      undoSecondsLeft = 180;
+      const toast = document.getElementById('undoToast');
+      const timerTxt = document.getElementById('undoTimerTxt');
+
+      toast.classList.add('active');
+      timerTxt.textContent = `${undoSecondsLeft}s`;
+
+      undoTimer = setInterval(() => {
+        undoSecondsLeft--;
+        if (undoSecondsLeft <= 0) {
+          clearInterval(undoTimer);
+          toast.classList.remove('active');
+          undoBackupEvents = null;
+        } else {
+          timerTxt.textContent = `${undoSecondsLeft}s`;
+        }
+      }, 1000);
+    }
+
+    function performUndoDelete() {
+      if (undoBackupEvents) {
+        saveMasterEvents(undoBackupEvents);
+        undoBackupEvents = null;
+        clearInterval(undoTimer);
+        document.getElementById('undoToast').classList.remove('active');
+        renderCalendar();
+        alert('Calendar items restored successfully!');
+      }
     }
 
     function openEventModal(eventKey) {
@@ -562,7 +664,7 @@
 
       const dateObj = new Date(ev.date + 'T00:00:00');
       const formattedDate = dateObj.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-      dateTime.textContent = `${formattedDate} • ⏰ ${ev.time || 'All Day'}`;
+      dateTime.textContent = `${formattedDate} • ⏰ ${formatTimeTo12Hour(ev.time)}`;
       
       location.textContent = unescapeIcsText(ev.location) || 'CCU Campus / Online';
       source.textContent = unescapeIcsText(ev.source) || ev.link || 'Custom Entry';
@@ -613,7 +715,6 @@
         let addedCount = 0;
 
         if (fileName.endsWith('.ics') || content.includes('BEGIN:VEVENT')) {
-          // Unfold multi-line folded text in ICS RFC 5545
           content = content.replace(/\r\n[ \t]/g, '').replace(/\n[ \t]/g, '');
           const lines = content.split(/\r\n|\n/);
           let currentEvent = null;
@@ -636,7 +737,8 @@
                 const dt = line.replace('DTSTART:', '').trim();
                 if (dt.length >= 8) {
                   currentEvent.date = `${dt.substring(0, 4)}-${dt.substring(4, 6)}-${dt.substring(6, 8)}`;
-                  currentEvent.time = dt.length >= 13 ? `${dt.substring(9, 11)}:${dt.substring(11, 13)}` : 'Class Session';
+                  const rawTime = dt.length >= 13 ? `${dt.substring(9, 11)}:${dt.substring(11, 13)}` : 'Class Session';
+                  currentEvent.time = formatTimeTo12Hour(rawTime);
                 }
               }
             }
@@ -932,7 +1034,7 @@
           pill.className = `event-pill ${cat} ${!isPillMatch ? 'dimmed-pill' : ''}`;
           const icon = cat === 'project' ? '🟥 ' : cat === 'classtime' || cat === 'brightspace' || cat === 'file' ? '🟦 ' : '🟨 ';
           pill.textContent = icon + e.title;
-          pill.title = `${e.title} (${e.time}) - Click for details`;
+          pill.title = `${e.title} (${formatTimeTo12Hour(e.time)}) - Click for details`;
           pill.onclick = (evt) => {
             evt.stopPropagation();
             openEventModal(key);
@@ -968,7 +1070,7 @@
             <div class="event-title">
               <span class="badge ${cat}">${label}</span> ${e.title}
             </div>
-            <div class="event-meta">📅 ${dateFormatted}, ${year} &nbsp;|&nbsp; ⏰ ${e.time}</div>
+            <div class="event-meta">📅 ${dateFormatted}, ${year} &nbsp;|&nbsp; ⏰ ${formatTimeTo12Hour(e.time)}</div>
             <div class="event-meta">📍 ${unescapeIcsText(e.location) || 'CCU Campus / Online'}</div>
           `;
           list.appendChild(item);
@@ -995,7 +1097,7 @@
           const m = String(d.getMonth() + 1).padStart(2, '0');
           const dayNum = String(d.getDate()).padStart(2, '0');
           masterList.push({
-            date: `${y}-${m}-${dayNum}`, title: title, category: 'classtime', time: time, location: location,
+            date: `${y}-${m}-${dayNum}`, title: title, category: 'classtime', time: formatTimeTo12Hour(time), location: location,
             link: 'https://selfservice.ccu.edu/Student/Planning/DegreePlans', source: 'Self-Service'
           });
           added++;
@@ -1014,7 +1116,7 @@
         date: document.getElementById('date').value,
         title: document.getElementById('title').value,
         category: document.getElementById('category').value,
-        time: document.getElementById('time').value,
+        time: formatTimeTo12Hour(document.getElementById('time').value),
         location: document.getElementById('location').value || 'CCU Campus / Online',
         link: document.getElementById('link').value || 'https://mycourses.ccu.edu',
         source: document.getElementById('link').value || 'User Entry'
